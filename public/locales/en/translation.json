@@ -1,0 +1,11 @@
+{
+  "welcome": "Welcome to our website",
+  "language": "Language",
+  "dashboard": "Dashboard",
+  "user_experience": "User Experience",
+  "vendor_activity": "Vendor Activity",
+  "business_activity": "Business Activity",
+  "users": "Users",
+  "smarthome_subscribers": "SmartHome Subscribers",
+  "other": "Other"
+}
