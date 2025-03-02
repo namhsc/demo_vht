@@ -40,8 +40,18 @@ export default function ToolbarActionsSearch() {
       />
       <ThemeSwitcher />
       <div style={{ display: "flex", gap: 6 }}>
-        <div onClick={() => changeLanguage("vi")}>VI</div>
-        <div onClick={() => changeLanguage("en")}>EN</div>
+        <div
+          onClick={() => changeLanguage("vi")}
+          style={{ cursor: "pointer", width: "40px" }}
+        >
+          VI
+        </div>
+        <div
+          onClick={() => changeLanguage("en")}
+          style={{ cursor: "pointer", width: "40px" }}
+        >
+          EN
+        </div>
       </div>
     </Stack>
   );

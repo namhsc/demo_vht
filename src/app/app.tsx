@@ -9,13 +9,16 @@ import { demoTheme } from "../config/theme";
 import ToolbarActionsSearch from "components/ToolbarActionsSearch";
 import SidebarFooter from "components/SidebarFooter";
 import useAuth from "../hook/useAuth";
-import Dashboard from "components/Dashboard";
 import { Box } from "@mui/material";
+import { ROUTES } from "../config/routes";
+import DashboardPage from "../pages/DashboardPage";
 
 function DemoPageContent({ pathName }: { pathName: string }) {
+  const PageComponent = ROUTES[pathName] || DashboardPage; // Mặc định hiển thị Dashboard nếu không tìm thấy route
+
   return (
-    <Box sx={{ backgroundColor: "#fff" }}>
-      <Dashboard pathName={pathName} />
+    <Box sx={{ backgroundColor: "#fff", padding: "20px" }}>
+      <PageComponent />
     </Box>
   );
 }

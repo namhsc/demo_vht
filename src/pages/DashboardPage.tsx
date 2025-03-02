@@ -30,7 +30,7 @@ Chart.register(
   ArcElement
 );
 
-const Dashboard = ({ pathName }: { pathName: string }) => {
+const DashboardPage = ({ pathName }: { pathName: string }) => {
   const { t } = useTranslation();
 
   const [layout, setLayout] = useState([
@@ -159,4 +159,4 @@ const Dashboard = ({ pathName }: { pathName: string }) => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;
