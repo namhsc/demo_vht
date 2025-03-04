@@ -15,6 +15,7 @@ export default defineConfig(() => {
         hooks: resolve(__dirname, "src", "hooks"),
         config: resolve(__dirname, "src", "config"),
         pages: resolve(__dirname, "src", "pages"),
+        api: resolve(__dirname, "src", "api"),
       },
     },
   };

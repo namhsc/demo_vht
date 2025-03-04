@@ -27,7 +27,8 @@
       "components/*": ["components/*"],
       "hooks/*": ["hooks/*"],
       "config/*": ["config/*"],
-      "pages/*": ["pages/*"]
+      "pages/*": ["pages/*"],
+      "api/*": ["api/*"]
     }
   },
   "include": ["src"]
