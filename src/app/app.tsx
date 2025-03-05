@@ -12,13 +12,40 @@ import useAuth from "../hooks/useAuth";
 import { Box } from "@mui/material";
 import { ROUTES } from "../config/routes";
 import DashboardPage from "../pages/DashboardPage";
+import { useEffect, useState } from "react";
+
+export interface LayoutItem {
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 function DemoPageContent({ pathName }: { pathName: string }) {
-  const PageComponent = ROUTES[pathName] || DashboardPage; // Mặc định hiển thị Dashboard nếu không tìm thấy route
+  const PageComponent = ROUTES[pathName] || DashboardPage;
+  const [layoutDefault, setLayoutDefault] = useState<LayoutItem[]>();
+
+  useEffect(() => {
+    if (layoutDefault) {
+      const filteredLayout = layoutDefault.map(({ i, x, y, w, h }) => ({
+        i,
+        x,
+        y,
+        w,
+        h,
+      }));
+
+      localStorage.setItem(
+        `layout_${pathName}`,
+        JSON.stringify(filteredLayout)
+      );
+    }
+  }, [layoutDefault]);
 
   return (
     <Box sx={{ backgroundColor: "#fff", padding: "20px" }}>
-      <PageComponent />
+      <PageComponent setLayoutDefault={setLayoutDefault} pathName={pathName} />
     </Box>
   );
 }
@@ -33,12 +60,13 @@ interface DemoProps {
 
 export default function App(props: DemoProps) {
   const { window } = props;
-
   const { session, authentication } = useAuth();
   const router = useDemoRouter("/dashboard");
 
   // Remove this const when copying and pasting into your project.
   const demoWindow = window !== undefined ? window() : undefined;
+
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   return (
     <AppProvider
@@ -65,6 +93,8 @@ export default function App(props: DemoProps) {
           toolbarActions: ToolbarActionsSearch,
           sidebarFooter: SidebarFooter,
         }}
+        navigationOpen={isNavOpen} // 🔹 Điều khiển trạng thái navigation
+        onNavigationOpenChange={setIsNavOpen} //
       >
         <DemoPageContent pathName={router.pathname} />
       </DashboardLayout>

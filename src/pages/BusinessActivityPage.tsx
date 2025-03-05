@@ -1,17 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import GridLayout from "react-grid-layout";
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement,
-} from "chart.js";
+
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import {
@@ -24,18 +13,8 @@ import { backgroundColor, borderColor } from "api/constants/colors";
 import RenderChart from "./components/RenderChart";
 import businessAPI from "api/businessAPI";
 import StatCard from "./components/business/StatCard";
-
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement
-);
+import { LayoutItem } from "app/app";
+import { layoutDefault } from "constants/layoutGrid";
 
 interface DataBusinessActivity {
   [key: string]: ChartData;
@@ -43,20 +22,31 @@ interface DataBusinessActivity {
 
 const cols = 12;
 
-const BusinessActivityPage = () => {
+interface BusinessPageProps {
+  setLayoutDefault?: React.Dispatch<React.SetStateAction<any>>;
+  pathName?: string;
+}
+
+const BusinessActivityPage: React.FC<BusinessPageProps> = ({
+  setLayoutDefault,
+  pathName,
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
-  const [layout, setLayout] = useState([
-    { i: "countUp", x: 0, y: 0, w: 2, h: 1 },
-    { i: "countOut", x: 2, y: 0, w: 2, h: 1 },
-    { i: "typeUser", x: 4, y: 0, w: 4, h: 3 },
-    { i: "revenueTotal", x: 0, y: 1, w: 4, h: 3 },
-    { i: "userService", x: 4, y: 3, w: 4, h: 3 },
-    { i: "totalServicePerMonth", x: 0, y: 5, w: 4, h: 3 },
-    { i: "totalUserPackage", x: 4, y: 6, w: 4, h: 3 },
-  ]);
+  const [layout, setLayout] = useState(() => {
+    const savedLayout = localStorage.getItem(`layout_${pathName}`);
+    return savedLayout
+      ? JSON.parse(savedLayout)
+      : layoutDefault[`layout_${pathName}_default`];
+  });
 
   const [dataBusiness, setDataBusiness] = useState<DataBusinessActivity>({});
+
+  useEffect(() => {
+    if (setLayoutDefault) {
+      setLayoutDefault(layout);
+    }
+  }, [layout, setLayoutDefault]);
 
   useEffect(() => {
     businessAPI
@@ -160,9 +150,44 @@ const BusinessActivityPage = () => {
         setDataBusiness((prev) => ({
           ...prev,
           typeUser: {
-            title: "Tỷ lệ thuê bao",
-            type: "pie",
+            title: "Tỷ lệ thuê bao đăng ký",
+            type: "divCustom",
             labels: ["Trả trước", "Trả sau"],
+            component: () => {
+              return (
+                <div className="p-4 bg-white rounded-lg text-center">
+                  <div className="text-xl font-bold text-gray-800">
+                    Tổng số: {counts[0] + counts[1]} thuê bao
+                  </div>
+
+                  <div className="flex justify-center items-center mt-2 text-gray-600">
+                    <span className="mr-4">
+                      Trả trước:
+                      <span className="text-blue-500 font-semibold">
+                        {counts[0]} (
+                        {((counts[0] / (counts[0] + counts[1])) * 100).toFixed(
+                          1
+                        )}
+                        %)
+                      </span>
+                    </span>
+
+                    <div className="w-[2px] h-6 bg-gray-300"></div>
+
+                    <span className="ml-4">
+                      Trả sau:
+                      <span className="text-green-500 font-semibold">
+                        {counts[1]} (
+                        {((counts[1] / (counts[0] + counts[1])) * 100).toFixed(
+                          1
+                        )}
+                        %)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              );
+            },
             datasets: [
               {
                 ...configChartDefault,
@@ -189,9 +214,15 @@ const BusinessActivityPage = () => {
         setDataBusiness((prev) => ({
           ...prev,
           revenueTotal: {
-            title: "Doanh thu",
+            title: "Doanh thu (VNĐ)",
             type: "line",
             labels: labels,
+            option: {
+              plugins: {
+                legend: { display: false },
+                datalabels: { display: false },
+              },
+            },
             datasets: [
               {
                 ...configChartDefault,
@@ -216,8 +247,42 @@ const BusinessActivityPage = () => {
           ...prev,
           userService: {
             title: "Tỷ lệ sử dụng dịch vụ",
-            type: "pie",
+            type: "divCustom",
             labels: labels,
+            component: () => {
+              return (
+                <div className="p-4 bg-white rounded-lg text-center">
+                  <div className="text-xl font-bold text-gray-800">
+                    Tổng số: {counts[0] + counts[1]} gói
+                  </div>
+
+                  <div className="flex justify-center items-center mt-2 text-gray-600">
+                    <span className="mr-4">
+                      Record:
+                      <span className="text-blue-500 font-semibold">
+                        {counts[0]} (
+                        {((counts[0] / (counts[0] + counts[1])) * 100).toFixed(
+                          1
+                        )}
+                        %)
+                      </span>
+                    </span>
+
+                    <div className="w-[2px] h-6 bg-gray-300"></div>
+                    <span className="ml-4">
+                      Cloud:
+                      <span className="text-green-500 font-semibold">
+                        {counts[1]} (
+                        {((counts[1] / (counts[0] + counts[1])) * 100).toFixed(
+                          1
+                        )}
+                        %)
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              );
+            },
             datasets: [
               {
                 ...configChartDefault,
@@ -274,15 +339,15 @@ const BusinessActivityPage = () => {
         ];
 
         const transformedData = allIds.reduce(
-          (acc, id) => {
-            acc[id] = dataRaw.map(({ data }) => {
+          (acc: any, id: any) => {
+            acc[id] = dataRaw.map(({ data }: any) => {
               const found = data.find((d: { _id: unknown }) => d._id === id);
               return found ? found.count : 0;
             });
             return acc;
           },
           {} as Record<number, number[]>
-        );
+        ) as any;
 
         setDataBusiness((prev) => ({
           ...prev,
@@ -290,6 +355,11 @@ const BusinessActivityPage = () => {
             title: "Số lượng dịch vụ đăng ký theo tháng",
             type: "line",
             labels: labels,
+            option: {
+              plugins: {
+                datalabels: { display: false },
+              },
+            },
             datasets: Object.values(transformedData).map((item, i) => {
               return {
                 ...configChartDefault,
@@ -324,52 +394,53 @@ const BusinessActivityPage = () => {
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "auto", display: "flex" }}>
-      <div style={{ flex: 1 }} ref={containerRef}>
-        <GridLayout
-          key={JSON.stringify(dataBusiness)}
-          className="layout"
-          layout={layout}
-          cols={cols}
-          rowHeight={gridWidth / cols}
-          width={gridWidth}
-          onLayoutChange={setLayout}
-          draggableHandle=".drag-handle"
-        >
-          {layout.map((data) => {
-            const dataChar = dataBusiness[data.i];
-            if (!dataChar) return <div key={data.i}></div>;
-            const { title, type, labels, datasets, option, component } =
-              dataChar;
+    <div
+      ref={containerRef}
+      style={{ width: "100%", height: "auto", display: "flex" }}
+    >
+      <GridLayout
+        key={JSON.stringify(dataBusiness)}
+        className="layout"
+        layout={layout}
+        cols={cols}
+        rowHeight={gridWidth / cols}
+        width={gridWidth}
+        onLayoutChange={setLayout}
+        draggableHandle=".drag-handle"
+      >
+        {layout.map((data: LayoutItem) => {
+          const dataChar = dataBusiness[data.i];
+          if (!dataChar) return <div key={data.i}></div>;
+          const { title, type, labels, datasets, option, component } = dataChar;
 
-            return (
+          return (
+            <div
+              key={data.i}
+              className="chart-container"
+              style={chartContainerStyle}
+            >
               <div
-                key={data.i}
-                className="chart-container"
-                style={chartContainerStyle}
+                className="drag-handle"
+                style={{
+                  cursor: "grab",
+                  background: "#ed023114",
+                  padding: 5,
+                }}
               >
-                <div
-                  className="drag-handle"
-                  style={{
-                    cursor: "grab",
-                    background: "#ed023114",
-                    padding: 5,
-                  }}
-                >
-                  {title}
-                </div>
-                <RenderChart
-                  type={type}
-                  labels={labels}
-                  datasets={datasets}
-                  option={option}
-                  component={component}
-                />
+                {title}
               </div>
-            );
-          })}
-        </GridLayout>
-      </div>
+              <RenderChart
+                key={gridWidth}
+                type={type}
+                labels={labels}
+                datasets={datasets}
+                option={option}
+                component={component}
+              />
+            </div>
+          );
+        })}
+      </GridLayout>
     </div>
   );
 };

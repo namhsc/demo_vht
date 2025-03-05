@@ -16,6 +16,7 @@ export default defineConfig(() => {
         config: resolve(__dirname, "src", "config"),
         pages: resolve(__dirname, "src", "pages"),
         api: resolve(__dirname, "src", "api"),
+        constants: resolve(__dirname, "src", "constants"),
       },
     },
   };

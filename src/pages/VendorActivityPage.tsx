@@ -1,17 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import GridLayout from "react-grid-layout";
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement,
-} from "chart.js";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 // import { useTranslation } from "react-i18next";
@@ -26,18 +14,8 @@ import TableVendorDevice from "./components/vendor/TableVendorDevice";
 import { backgroundColor, borderColor } from "api/constants/colors";
 import RenderChart from "./components/RenderChart";
 import useDeviceTypeMap from "hooks/useDeviceTypeMap";
-
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement
-);
+import { LayoutItem } from "app/app";
+import { layoutDefault } from "constants/layoutGrid";
 
 interface DataVendorActivity {
   [key: string]: ChartData;
@@ -45,27 +23,41 @@ interface DataVendorActivity {
 
 const cols = 8;
 
-const VendorActivityPage = () => {
+interface VendorPageProps {
+  setLayoutDefault?: React.Dispatch<React.SetStateAction<any>>;
+  pathName?: string;
+}
+const VendorActivityPage: React.FC<VendorPageProps> = ({
+  setLayoutDefault,
+  pathName,
+}) => {
   // const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
   const deviceTypeMap = useDeviceTypeMap();
-  const [layout, setLayout] = useState([
-    { i: "countDeviceByVendor", x: 0, y: 0, w: 4, h: 3 },
-    { i: "newDeviceVendor", x: 4, y: 0, w: 4, h: 3 },
-    { i: "countDeviceByTy", x: 0, y: 3, w: 8, h: 3 },
-  ]);
+  const [layout, setLayout] = useState(() => {
+    const savedLayout = localStorage.getItem(`layout_${pathName}`);
+    return savedLayout
+      ? JSON.parse(savedLayout)
+      : layoutDefault[`layout_${pathName}_default`];
+  });
 
   const [dataTable, setDataTable] = useState([]);
   const [queryTable, setQueryTable] = useState<{
     page: number;
     pageSize: number;
   }>({
-    page: 1,
+    page: 0,
     pageSize: 10,
   });
 
   const [dataVendor, setDataVendor] = useState<DataVendorActivity>({});
+
+  useEffect(() => {
+    if (setLayoutDefault) {
+      setLayoutDefault(layout);
+    }
+  }, [layout, setLayoutDefault]);
 
   useEffect(() => {
     vendorAPI
@@ -105,9 +97,7 @@ const VendorActivityPage = () => {
                 y: { beginAtZero: true },
               },
               plugins: {
-                legend: {
-                  display: false,
-                },
+                legend: { display: false },
               },
             },
             datasets: [
@@ -137,6 +127,14 @@ const VendorActivityPage = () => {
             title: "Số lượng thiết bị mới",
             type: "line",
             labels: ids,
+            option: {
+              plugins: {
+                legend: { display: false },
+              },
+              elements: {
+                line: { tension: 0 }, // Bắt buộc thẳng
+              },
+            },
             datasets: [
               {
                 ...configChartDefault,
@@ -164,7 +162,11 @@ const VendorActivityPage = () => {
             title: "Số lượng thiết bị của Vendor",
             type: "bar",
             labels: ids,
-            option: { indexAxis: "y" },
+            option: {
+              plugins: {
+                legend: { display: false },
+              },
+            },
             datasets: [
               {
                 ...configChartDefault,
@@ -211,7 +213,7 @@ const VendorActivityPage = () => {
           onLayoutChange={setLayout}
           draggableHandle=".drag-handle"
         >
-          {layout.map((data) => {
+          {layout.map((data: LayoutItem) => {
             const dataChar = dataVendor[data.i];
             if (!dataChar) return <div key={data.i}></div>;
 
@@ -233,6 +235,7 @@ const VendorActivityPage = () => {
                   {title}
                 </div>
                 <RenderChart
+                  key={gridWidth}
                   type={type}
                   labels={labels}
                   datasets={datasets}

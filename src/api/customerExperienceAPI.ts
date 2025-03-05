@@ -23,7 +23,7 @@ const userExperienceAPI = {
     pageSize: number;
   }) => {
     return axiosClient.post(`${path}/feedback`, {
-      page: page || 1,
+      page: page + 1 || 1,
       pageSize: pageSize || 10,
     });
   },

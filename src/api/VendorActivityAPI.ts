@@ -17,7 +17,7 @@ const vendorAPI = {
     pageSize: number;
   }) => {
     return axiosClient.post(`${path}/vendor-and-device`, {
-      page: page || 1,
+      page: page + 1 || 1,
       pageSize: pageSize || 10,
       sortBy: "",
       sortOder: "",

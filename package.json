@@ -28,6 +28,7 @@
 		"@types/react-world-flags": "^1.6.0",
 		"axios": "^1.8.1",
 		"chart.js": "^4.4.8",
+		"chartjs-plugin-datalabels": "^2.2.0",
 		"date-fns": "^4.1.0",
 		"i18next": "^24.2.2",
 		"i18next-browser-languagedetector": "^8.0.4",

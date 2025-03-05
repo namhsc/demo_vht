@@ -1,17 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import GridLayout from "react-grid-layout";
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement,
-} from "chart.js";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 // import { useTranslation } from "react-i18next";
@@ -19,18 +7,8 @@ import userExperienceAPI from "api/customerExperienceAPI";
 import { backgroundColor, borderColor } from "api/constants/colors";
 import RenderChart from "./components/RenderChart";
 import TableFeedback from "./components/vendor/TableFeedback";
-
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  PointElement,
-  LineElement,
-  ArcElement
-);
+import { LayoutItem } from "app/app";
+import { layoutDefault } from "constants/layoutGrid";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const configChartDefault = { fill: false, tension: 0.6, borderWidth: 1 };
@@ -84,10 +62,17 @@ export interface responseChart {
 interface DataUserExperience {
   [key: string]: ChartData;
 }
-
 const cols = 12;
 
-const DashboardPage = () => {
+interface DashboardPageProps {
+  setLayoutDefault?: React.Dispatch<React.SetStateAction<any>>;
+  pathName?: string;
+}
+
+const DashboardPage: React.FC<DashboardPageProps> = ({
+  setLayoutDefault,
+  pathName,
+}) => {
   // const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
@@ -97,18 +82,24 @@ const DashboardPage = () => {
     page: number;
     pageSize: number;
   }>({
-    page: 1,
+    page: 0,
     pageSize: 10,
   });
 
-  const [layout, setLayout] = useState([
-    { i: "timeDistributon", x: 0, y: 0, w: 6, h: 4 },
-    { i: "platformStats", x: 6, y: 0, w: 6, h: 4 },
-    // { i: "statusDistribution", x: 0, y: 4, w: 6, h: 4 },
-    { i: "feedbackRating", x: 0, y: 4, w: 12, h: 4 },
-  ]);
+  const [layout, setLayout] = useState(() => {
+    const savedLayout = localStorage.getItem(`layout_${pathName}`);
+    return savedLayout
+      ? JSON.parse(savedLayout)
+      : layoutDefault[`layout_${pathName}_default`];
+  });
 
   const [dataExperience, setDataExperience] = useState<DataUserExperience>({});
+
+  useEffect(() => {
+    if (setLayoutDefault) {
+      setLayoutDefault(layout);
+    }
+  }, [layout, setLayoutDefault]);
 
   useEffect(() => {
     userExperienceAPI
@@ -181,15 +172,15 @@ const DashboardPage = () => {
       .then((res) => {
         const { data } = res;
         const dataRaw = data.reverse();
-        const ids = dataRaw.map((item: dataChart) => item._id);
+        const ids = dataRaw.map((item: dataChart) => `${item._id} rating`);
         // 🔹 1. Lấy danh sách tất cả platform (app, tv, web)
         const platforms = ["app", "tv", "web"];
 
         // 🔹 2. Tạo object chứa platform với danh sách count theo đúng thứ tự _id
         const transformedData = platforms.reduce(
           (acc, platform) => {
-            acc[platform] = dataRaw.map(({ platforms }) => {
-              const found = platforms.find((p) => p.platform === platform);
+            acc[platform] = dataRaw.map(({ platforms }: any) => {
+              const found = platforms.find((p: any) => p.platform === platform);
               return found ? found.count : 0;
             });
             return acc;
@@ -249,7 +240,7 @@ const DashboardPage = () => {
           onLayoutChange={setLayout}
           draggableHandle=".drag-handle"
         >
-          {layout.map((data) => {
+          {layout.map((data: LayoutItem) => {
             const dataChar = dataExperience[data.i];
             if (!dataChar) return <div key={data.i}></div>;
 
@@ -271,6 +262,7 @@ const DashboardPage = () => {
                   {title}
                 </div>
                 <RenderChart
+                  key={gridWidth}
                   type={type}
                   labels={labels}
                   datasets={datasets}

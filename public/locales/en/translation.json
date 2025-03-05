@@ -5,9 +5,6 @@
   "user_experience": "User Experience",
   "vendor_activity": "Vendor Activity",
   "business_activity": "Business Activity",
-  "users": "Users",
-  "smarthome_subscribers": "SmartHome Subscribers",
-  "other": "Other",
   "device_types": {
     "1": "Smart Camera",
     "2": "Smart Light",

@@ -1,7 +1,7 @@
 import { type Navigation } from "@toolpad/core/AppProvider";
-import LayersIcon from "@mui/icons-material/Layers";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import DescriptionIcon from "@mui/icons-material/Description";
+import PersonIcon from "@mui/icons-material/Person"; // Trải nghiệm người dùng
+import StoreIcon from "@mui/icons-material/Store"; // Hoạt động vendor
+import BusinessIcon from "@mui/icons-material/Business"; // Hoạt động kinh doanh
 import { useTranslation } from "react-i18next";
 
 export function useNavigation(): Navigation {
@@ -9,37 +9,19 @@ export function useNavigation(): Navigation {
 
   return [
     {
-      segment: "dashboard",
-      title: t("dashboard"),
-      icon: <DashboardIcon />,
-      children: [
-        {
-          segment: "1",
-          title: t("user_experience"),
-          icon: <DescriptionIcon />,
-        },
-        {
-          segment: "2",
-          title: t("vendor_activity"),
-          icon: <DescriptionIcon />,
-        },
-        {
-          segment: "3",
-          title: t("business_activity"),
-          icon: <DescriptionIcon />,
-        },
-        { segment: "4", title: t("users"), icon: <DescriptionIcon /> },
-        {
-          segment: "5",
-          title: t("smarthome_subscribers"),
-          icon: <DescriptionIcon />,
-        },
-      ],
+      segment: "user_experience",
+      title: t("user_experience"),
+      icon: <PersonIcon />,
     },
     {
-      segment: "Other",
-      title: t("other"),
-      icon: <LayersIcon />,
+      segment: "vendor_activity",
+      title: t("vendor_activity"),
+      icon: <StoreIcon />,
+    },
+    {
+      segment: "business_activity",
+      title: t("business_activity"),
+      icon: <BusinessIcon />,
     },
   ];
 }

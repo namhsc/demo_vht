@@ -77,7 +77,7 @@ const TableFeedback: React.FC<TableFeedbackProps> = ({
       <TablePagination
         rowsPerPageOptions={[10, 20, 50]}
         component="div"
-        count={data.length}
+        count={100}
         rowsPerPage={queryTable.pageSize}
         page={queryTable.page}
         onPageChange={handleChangePage}
