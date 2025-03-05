@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import GridLayout from "react-grid-layout";
-import { Line, Bar, Pie, Doughnut } from "react-chartjs-2";
 import {
   Chart,
   CategoryScale,
@@ -12,7 +11,6 @@ import {
   PointElement,
   LineElement,
   ArcElement,
-  ChartOptions,
 } from "chart.js";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -26,6 +24,8 @@ import {
 import vendorAPI from "api/VendorActivityAPI";
 import TableVendorDevice from "./components/vendor/TableVendorDevice";
 import { backgroundColor, borderColor } from "api/constants/colors";
+import RenderChart from "./components/RenderChart";
+import useDeviceTypeMap from "hooks/useDeviceTypeMap";
 
 Chart.register(
   CategoryScale,
@@ -39,32 +39,6 @@ Chart.register(
   ArcElement
 );
 
-const chartOptions: ChartOptions = {
-  maintainAspectRatio: false,
-  responsive: true,
-  plugins: {
-    legend: {
-      display: true,
-      position: "bottom",
-    },
-  },
-  layout: { padding: 10 },
-};
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const DeviceTypeMap: Record<number, string> = {
-  1: "Camera thông minh",
-  2: "Đèn thông minh",
-  3: "Cửa thông minh",
-  4: "Camera WiFi",
-  5: "TV thông minh",
-  6: "Điều hòa thông minh",
-  7: "Phích cắm thông minh",
-  8: "Loa thông minh",
-  9: "Khóa thông minh",
-  10: "Tủ lạnh thông minh",
-};
-
 interface DataVendorActivity {
   [key: string]: ChartData;
 }
@@ -75,7 +49,7 @@ const VendorActivityPage = () => {
   // const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
-
+  const deviceTypeMap = useDeviceTypeMap();
   const [layout, setLayout] = useState([
     { i: "countDeviceByVendor", x: 0, y: 0, w: 4, h: 3 },
     { i: "newDeviceVendor", x: 4, y: 0, w: 4, h: 3 },
@@ -83,21 +57,40 @@ const VendorActivityPage = () => {
   ]);
 
   const [dataTable, setDataTable] = useState([]);
+  const [queryTable, setQueryTable] = useState<{
+    page: number;
+    pageSize: number;
+  }>({
+    page: 1,
+    pageSize: 10,
+  });
 
   const [dataVendor, setDataVendor] = useState<DataVendorActivity>({});
+
+  useEffect(() => {
+    vendorAPI
+      .tableVendorAndDevice(queryTable)
+      .then((res) => {
+        const { data } = res;
+        setDataTable(data);
+      })
+      .catch((e) => console.error(e));
+  }, [queryTable]);
 
   useEffect(() => {
     vendorAPI
       .getTyeDistributionDevice()
       .then((res) => {
         const { data } = res;
-        const ids = data.map(
-          (item: dataChart) => DeviceTypeMap[parseInt(item._id)]
+        const ids = data.map((item: dataChart) =>
+          deviceTypeMap.get(parseInt(item._id))
         );
         const counts = data.map((item: dataChart) => item.count);
-        const colors = data.map((item: dataChart, i: number) => borderColor[i]);
+        const colors = data.map(
+          (_item: dataChart, i: number) => borderColor[i]
+        );
         const border = data.map(
-          (item: dataChart, i: number) => backgroundColor[i]
+          (_item: dataChart, i: number) => backgroundColor[i]
         );
 
         setDataVendor((prev) => ({
@@ -113,7 +106,7 @@ const VendorActivityPage = () => {
               },
               plugins: {
                 legend: {
-                  display: false, // Ẩn toàn bộ legend
+                  display: false,
                 },
               },
             },
@@ -149,20 +142,12 @@ const VendorActivityPage = () => {
                 ...configChartDefault,
                 label: "Thiết bị mơi",
                 data: counts,
-                borderColor: "rgba(54, 162, 235, 1)",
-                backgroundColor: "rgba(54, 162, 235, 0.2)",
+                borderColor: borderColor[2],
+                backgroundColor: backgroundColor[2],
               },
             ],
           },
         }));
-      })
-      .catch((e) => console.error(e));
-
-    vendorAPI
-      .tableVendorAndDevice({ page: 1, pageSize: 10 })
-      .then((res) => {
-        const { data } = res;
-        setDataTable(data);
       })
       .catch((e) => console.error(e));
 
@@ -239,46 +224,31 @@ const VendorActivityPage = () => {
               >
                 <div
                   className="drag-handle"
-                  style={{ cursor: "grab", background: "#ccc", padding: 5 }}
+                  style={{
+                    cursor: "grab",
+                    background: "#ed023114",
+                    padding: 5,
+                  }}
                 >
                   {title}
                 </div>
-                <div style={{ flexGrow: 1 }}>
-                  {type === "line" && (
-                    <Line
-                      data={{ labels, datasets }}
-                      options={{
-                        ...chartOptions,
-                        ...option,
-                      }}
-                    />
-                  )}
-                  {type === "bar" && (
-                    <Bar
-                      data={{ labels, datasets }}
-                      options={{ ...chartOptions, ...option }}
-                    />
-                  )}
-                  {type === "pie" && (
-                    <Pie
-                      data={{ labels, datasets }}
-                      options={{ ...chartOptions, ...option }}
-                    />
-                  )}
-                  {type === "doughnut" && (
-                    <Doughnut
-                      data={{ labels, datasets }}
-                      options={{ ...chartOptions, ...option }}
-                    />
-                  )}
-                </div>
+                <RenderChart
+                  type={type}
+                  labels={labels}
+                  datasets={datasets}
+                  option={option}
+                />
               </div>
             );
           })}
         </GridLayout>
       </div>
       <div style={{ width: "500px", minWidth: "500px" }}>
-        <TableVendorDevice data={dataTable} />
+        <TableVendorDevice
+          queryTable={queryTable}
+          data={dataTable}
+          setQueryTable={setQueryTable}
+        />
       </div>
     </div>
   );

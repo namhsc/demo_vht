@@ -7,5 +7,17 @@
   "business_activity": "Business Activity",
   "users": "Users",
   "smarthome_subscribers": "SmartHome Subscribers",
-  "other": "Other"
+  "other": "Other",
+  "device_types": {
+    "1": "Smart Camera",
+    "2": "Smart Light",
+    "3": "Smart Door",
+    "4": "WiFi Camera",
+    "5": "Smart TV",
+    "6": "Smart Air Conditioner",
+    "7": "Smart Plug",
+    "8": "Smart Speaker",
+    "9": "Smart Lock",
+    "10": "Smart Refrigerator"
+  }
 }

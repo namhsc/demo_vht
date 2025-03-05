@@ -8,7 +8,7 @@ import { useNavigation } from "../config/navigation";
 import { demoTheme } from "../config/theme";
 import ToolbarActionsSearch from "components/ToolbarActionsSearch";
 import SidebarFooter from "components/SidebarFooter";
-import useAuth from "../hook/useAuth";
+import useAuth from "../hooks/useAuth";
 import { Box } from "@mui/material";
 import { ROUTES } from "../config/routes";
 import DashboardPage from "../pages/DashboardPage";
@@ -53,7 +53,7 @@ export default function App(props: DemoProps) {
             alt="VHT logo"
           />
         ),
-        title: "Dashboard",
+        title: "",
         homeUrl: "/dashboard",
       }}
       session={session}

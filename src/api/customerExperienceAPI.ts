@@ -13,7 +13,19 @@ const userExperienceAPI = {
     return axiosClient.get(`${path}/platform-stats`);
   },
   getFeedbackRating: () => {
-    return axiosClient.get(`${path}/feedback-rating`);
+    return axiosClient.get(`${path}/feedback-rating-platform`);
+  },
+  getDataListFeedback: ({
+    page,
+    pageSize,
+  }: {
+    page: number;
+    pageSize: number;
+  }) => {
+    return axiosClient.post(`${path}/feedback`, {
+      page: page || 1,
+      pageSize: pageSize || 10,
+    });
   },
 };
 

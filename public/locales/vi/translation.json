@@ -7,5 +7,17 @@
   "business_activity": "Hoạt động kinh doanh",
   "users": "Người dùng",
   "smarthome_subscribers": "Thuê bao SmartHome",
-  "other": "Khác"
+  "other": "Khác",
+  "device_types": {
+    "1": "Camera thông minh",
+    "2": "Đèn thông minh",
+    "3": "Cửa thông minh",
+    "4": "Camera WiFi",
+    "5": "TV thông minh",
+    "6": "Điều hòa thông minh",
+    "7": "Phích cắm thông minh",
+    "8": "Loa thông minh",
+    "9": "Khóa thông minh",
+    "10": "Tủ lạnh thông minh"
+  }
 }

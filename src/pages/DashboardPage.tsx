@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import GridLayout from "react-grid-layout";
-import { Line, Bar, Pie, Doughnut } from "react-chartjs-2";
 import {
   Chart,
   CategoryScale,
@@ -12,13 +11,14 @@ import {
   PointElement,
   LineElement,
   ArcElement,
-  ChartOptions,
 } from "chart.js";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 // import { useTranslation } from "react-i18next";
 import userExperienceAPI from "api/customerExperienceAPI";
 import { backgroundColor, borderColor } from "api/constants/colors";
+import RenderChart from "./components/RenderChart";
+import TableFeedback from "./components/vendor/TableFeedback";
 
 Chart.register(
   CategoryScale,
@@ -32,8 +32,10 @@ Chart.register(
   ArcElement
 );
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const configChartDefault = { fill: false, tension: 0.6, borderWidth: 1 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const chartContainerStyle: React.CSSProperties = {
   width: "100%",
   height: "100%",
@@ -45,18 +47,6 @@ export const chartContainerStyle: React.CSSProperties = {
   border: "1px solid #ccc",
 };
 
-const chartOptions: ChartOptions = {
-  maintainAspectRatio: false,
-  responsive: true,
-  plugins: {
-    legend: {
-      display: true,
-      position: "bottom",
-    },
-  },
-  layout: { padding: 10 },
-};
-
 export interface ChartData {
   title: string;
   type: string;
@@ -65,6 +55,7 @@ export interface ChartData {
   datasets: any[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   option?: any;
+  component?: () => JSX.Element;
 }
 interface dataMonth {
   year: number;
@@ -80,6 +71,10 @@ export interface dataChart {
   vendorName: string;
   deviceCount: number;
   monthlyData: dataMonth[];
+  total: number;
+  totalRevenue: number;
+  totalUsing: number;
+  timeData: string;
 }
 
 export interface responseChart {
@@ -97,14 +92,33 @@ const DashboardPage = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
 
+  const [dataTable, setDataTable] = useState([]);
+  const [queryTable, setQueryTable] = useState<{
+    page: number;
+    pageSize: number;
+  }>({
+    page: 1,
+    pageSize: 10,
+  });
+
   const [layout, setLayout] = useState([
     { i: "timeDistributon", x: 0, y: 0, w: 6, h: 4 },
     { i: "platformStats", x: 6, y: 0, w: 6, h: 4 },
-    { i: "statusDistribution", x: 0, y: 4, w: 6, h: 4 },
-    { i: "feedbackRating", x: 6, y: 4, w: 6, h: 4 },
+    // { i: "statusDistribution", x: 0, y: 4, w: 6, h: 4 },
+    { i: "feedbackRating", x: 0, y: 4, w: 12, h: 4 },
   ]);
 
   const [dataExperience, setDataExperience] = useState<DataUserExperience>({});
+
+  useEffect(() => {
+    userExperienceAPI
+      .getDataListFeedback(queryTable)
+      .then((res) => {
+        const { data } = res;
+        setDataTable(data);
+      })
+      .catch((e) => console.error(e));
+  }, [queryTable]);
 
   useEffect(() => {
     userExperienceAPI
@@ -125,22 +139,8 @@ const DashboardPage = () => {
                 ...configChartDefault,
                 label: "Lượt",
                 data: counts,
-                backgroundColor: [
-                  "rgba(255, 99, 132, 0.2)",
-                  "rgba(54, 162, 235, 0.2)",
-                  "rgba(255, 206, 86, 0.2)",
-                  "rgba(75, 192, 192, 0.2)",
-                  "rgba(153, 102, 255, 0.2)",
-                  "rgba(255, 159, 64, 0.2)",
-                ],
-                borderColor: [
-                  "rgba(255, 99, 132, 1)",
-                  "rgba(54, 162, 235, 1)",
-                  "rgba(255, 206, 86, 1)",
-                  "rgba(75, 192, 192, 1)",
-                  "rgba(153, 102, 255, 1)",
-                  "rgba(255, 159, 64, 1)",
-                ],
+                borderColor: borderColor,
+                backgroundColor: backgroundColor,
               },
             ],
           },
@@ -152,90 +152,23 @@ const DashboardPage = () => {
       .getPlatformStats()
       .then((res) => {
         const { data } = res;
-        const labels = data[0].monthlyData.map(
-          (item: dataMonth) => `${item.month}/${item.year}`
-        );
 
-        const countApp = data[0].monthlyData.map(
-          (item: dataMonth) => `${item.count}`
-        );
-        const countTV = data[1].monthlyData.map(
-          (item: dataMonth) => `${item.count}`
-        );
+        const ids = data.map((item: dataChart) => item._id);
+        const counts = data.map((item: dataChart) => item.total);
 
-        const countWeb = data[2].monthlyData.map(
-          (item: dataMonth) => `${item.count}`
-        );
-
-        console.log("labels", labels);
         setDataExperience((prev) => ({
           ...prev,
           platformStats: {
             title: "Số lượng người dùng trên các nền tảng",
-            type: "bar",
-            labels: labels,
+            type: "doughnut",
+            labels: ids,
             datasets: [
               {
                 ...configChartDefault,
                 label: "App",
-                data: countApp,
-                borderColor: borderColor[0],
-                backgroundColor: backgroundColor[0],
-                stack: "Stack 0",
-              },
-              {
-                ...configChartDefault,
-                label: "Tv",
-                data: countTV,
-                borderColor: borderColor[1],
-                backgroundColor: backgroundColor[1],
-                stack: "Stack 0",
-              },
-              {
-                ...configChartDefault,
-                label: "Web",
-                data: countWeb,
-                borderColor: borderColor[2],
-                backgroundColor: backgroundColor[2],
-                stack: "Stack 0",
-              },
-            ],
-          },
-        }));
-      })
-      .catch((e) => console.error(e));
-
-    userExperienceAPI
-      .getStatusDistribution()
-      .then((res) => {
-        const { data } = res;
-        const ids = data.map((item: dataChart) => item._id);
-        const counts = data.map((item: dataChart) => item.count);
-
-        setDataExperience((prev) => ({
-          ...prev,
-          statusDistribution: {
-            title: "Đánh giá trạng thái sử dụng API",
-            type: "bar",
-            labels: ids,
-            option: { indexAxis: "y" },
-            datasets: [
-              {
-                ...configChartDefault,
-                label: "Lượt truy cập",
                 data: counts,
-                backgroundColor: [
-                  "rgba(255, 206, 86, 0.2)",
-                  "rgba(75, 192, 192, 0.2)",
-                  "rgba(153, 102, 255, 0.2)",
-                  "rgba(255, 159, 64, 0.2)",
-                ],
-                borderColor: [
-                  "rgba(255, 206, 86, 1)",
-                  "rgba(75, 192, 192, 1)",
-                  "rgba(153, 102, 255, 1)",
-                  "rgba(255, 159, 64, 1)",
-                ],
+                borderColor: borderColor,
+                backgroundColor: backgroundColor,
               },
             ],
           },
@@ -247,10 +180,21 @@ const DashboardPage = () => {
       .getFeedbackRating()
       .then((res) => {
         const { data } = res;
-        const ids = data.map((item: dataChart) => item._id);
-        const counts = data.map((item: dataChart) => item.count);
-        const averageRating = data.map((item: dataChart) =>
-          item.averageRating.toFixed(1)
+        const dataRaw = data.reverse();
+        const ids = dataRaw.map((item: dataChart) => item._id);
+        // 🔹 1. Lấy danh sách tất cả platform (app, tv, web)
+        const platforms = ["app", "tv", "web"];
+
+        // 🔹 2. Tạo object chứa platform với danh sách count theo đúng thứ tự _id
+        const transformedData = platforms.reduce(
+          (acc, platform) => {
+            acc[platform] = dataRaw.map(({ platforms }) => {
+              const found = platforms.find((p) => p.platform === platform);
+              return found ? found.count : 0;
+            });
+            return acc;
+          },
+          {} as Record<string, number[]>
         );
 
         setDataExperience((prev) => ({
@@ -259,40 +203,15 @@ const DashboardPage = () => {
             title: "Bảng đánh giá của khách hàng",
             type: "bar",
             labels: ids,
-            option: {
-              scales: {
-                "y-axis-2": {
-                  type: "linear",
-                  position: "right",
-                  min: 0, // Đảm bảo trục y bắt đầu từ 0
-                  max: 5, // Giới hạn tối đa là 5
-                  ticks: {
-                    stepSize: 1, // Chia nhỏ thang đo từ 0 - 5
-                  },
-                },
-              },
-            },
-            datasets: [
-              {
-                type: "bar",
-                label: "Số lượt đánh giá",
-                data: counts,
-                borderColor: borderColor[8],
-                backgroundColor: backgroundColor[8],
-                borderWidth: 1,
-                yAxisID: "y-axis-1",
-              },
-              {
-                type: "line",
-                label: "Điểm trung bình",
-                data: averageRating,
-                borderColor: "rgba(255, 99, 132, 1)",
-                backgroundColor: "rgba(255, 99, 132, 0.2)",
-                borderWidth: 2,
-                pointRadius: 4,
-                yAxisID: "y-axis-2",
-              },
-            ],
+            datasets: platforms.map((platform, i) => ({
+              type: "bar",
+              label: platform,
+              data: transformedData[platform],
+              borderColor: borderColor[i],
+              backgroundColor: backgroundColor[i],
+              borderWidth: 1,
+              stack: "stocks",
+            })),
           },
         }));
       })
@@ -318,64 +237,57 @@ const DashboardPage = () => {
   }, []);
 
   return (
-    <div ref={containerRef} style={{ width: "100%", height: "auto" }}>
-      <GridLayout
-        key={JSON.stringify(dataExperience)}
-        className="layout"
-        layout={layout}
-        cols={cols}
-        rowHeight={gridWidth / cols}
-        width={gridWidth}
-        onLayoutChange={setLayout}
-        draggableHandle=".drag-handle"
-      >
-        {layout.map((data) => {
-          const dataChar = dataExperience[data.i];
-          if (!dataChar) return <div key={data.i}></div>;
+    <div style={{ width: "100%", height: "auto", display: "flex" }}>
+      <div style={{ flex: 1 }} ref={containerRef}>
+        <GridLayout
+          key={JSON.stringify(dataExperience)}
+          className="layout"
+          layout={layout}
+          cols={cols}
+          rowHeight={gridWidth / cols}
+          width={gridWidth}
+          onLayoutChange={setLayout}
+          draggableHandle=".drag-handle"
+        >
+          {layout.map((data) => {
+            const dataChar = dataExperience[data.i];
+            if (!dataChar) return <div key={data.i}></div>;
 
-          const { title, type, labels, datasets, option } = dataChar;
-          return (
-            <div
-              key={data.i}
-              className="chart-container"
-              style={chartContainerStyle}
-            >
+            const { title, type, labels, datasets, option } = dataChar;
+            return (
               <div
-                className="drag-handle"
-                style={{ cursor: "grab", background: "#ccc", padding: 5 }}
+                key={data.i}
+                className="chart-container"
+                style={chartContainerStyle}
               >
-                {title}
+                <div
+                  className="drag-handle"
+                  style={{
+                    cursor: "grab",
+                    background: "#ed023114",
+                    padding: 5,
+                  }}
+                >
+                  {title}
+                </div>
+                <RenderChart
+                  type={type}
+                  labels={labels}
+                  datasets={datasets}
+                  option={option}
+                />
               </div>
-              <div style={{ flexGrow: 1 }}>
-                {type === "line" && (
-                  <Line
-                    data={{ labels, datasets }}
-                    options={{ ...chartOptions, ...option }}
-                  />
-                )}
-                {type === "bar" && (
-                  <Bar
-                    data={{ labels, datasets }}
-                    options={{ ...chartOptions, ...option }}
-                  />
-                )}
-                {type === "pie" && (
-                  <Pie
-                    data={{ labels, datasets }}
-                    options={{ ...chartOptions, ...option }}
-                  />
-                )}
-                {type === "doughnut" && (
-                  <Doughnut
-                    data={{ labels, datasets }}
-                    options={{ ...chartOptions, ...option }}
-                  />
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </GridLayout>
+            );
+          })}
+        </GridLayout>
+      </div>
+      <div style={{ width: "500px", minWidth: "500px" }}>
+        <TableFeedback
+          queryTable={queryTable}
+          data={dataTable}
+          setQueryTable={setQueryTable}
+        />
+      </div>
     </div>
   );
 };
