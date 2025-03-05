@@ -16,7 +16,7 @@ import {
 } from "chart.js";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 import userExperienceAPI from "api/customerExperienceAPI";
 
 Chart.register(
@@ -30,6 +30,8 @@ Chart.register(
   LineElement,
   ArcElement
 );
+
+export const configChartDefault = { fill: false, tension: 0.6, borderWidth: 1 };
 
 export const chartContainerStyle: React.CSSProperties = {
   width: "100%",
@@ -54,36 +56,37 @@ export const chartOptions: ChartOptions = {
   layout: { padding: 10 },
 };
 
-interface Dataset {
-  label?: string;
-  data: number[];
-  fill?: boolean;
-  borderColor?: string | string[];
-  tension?: number;
-  backgroundColor?: string | string[];
-  type?: string;
-  borderWidth?: number;
-  yAxisID?: string;
-}
-
-interface ChartData {
+export interface ChartData {
   title: string;
   type: string;
   labels: string[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   datasets: any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   option?: any;
+}
+
+interface dataChart {
+  _id: string;
+  count: number;
+  averageRating: number;
+  nameType: string;
+}
+
+export interface responseChart {
+  data: dataChart[];
 }
 
 interface DataUserExperience {
   [key: string]: ChartData;
 }
 
-const cols = 12;
+export const cols = 12;
 
-const DashboardPage = ({ pathName }: { pathName: string }) => {
-  const { t } = useTranslation();
+const DashboardPage = () => {
+  // const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [gridWidth, setGridWidth] = useState(window.innerWidth);
+  const [gridWidth, setGridWidth] = useState(0);
 
   const [layout, setLayout] = useState([
     { i: "timeDistributon", x: 0, y: 0, w: 4, h: 3 },
@@ -97,10 +100,11 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
   useEffect(() => {
     userExperienceAPI
       .getTimeDistribution()
-      .then((res) => {
+      .then((res: responseChart) => {
         const { data } = res;
-        const ids = data.map((item: any) => item._id);
-        const counts = data.map((item: any) => item.count);
+        const ids = data.map((item: dataChart) => item._id);
+        const counts = data.map((item: dataChart) => item.count);
+
         setDataExperience((prev) => ({
           ...prev,
           timeDistributon: {
@@ -109,11 +113,9 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
             labels: ids,
             datasets: [
               {
+                ...configChartDefault,
                 label: "Lượt",
                 data: counts,
-                fill: false,
-                tension: 0.4,
-                borderWidth: 1,
                 backgroundColor: [
                   "rgba(255, 99, 132, 0.2)",
                   "rgba(54, 162, 235, 0.2)",
@@ -141,8 +143,9 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
       .getPlatformStats()
       .then((res) => {
         const { data } = res;
-        const ids = data.map((item: any) => item._id);
-        const counts = data.map((item: any) => item.count);
+        const ids = data.map((item: dataChart) => item._id);
+        const counts = data.map((item: dataChart) => item.count);
+
         setDataExperience((prev) => ({
           ...prev,
           platformStats: {
@@ -151,11 +154,10 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
             labels: ids,
             datasets: [
               {
+                ...configChartDefault,
                 label: "Lượt truy cập",
                 data: counts,
-                fill: false,
                 borderColor: "#42A5F5",
-                tension: 0.4,
                 backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
               },
             ],
@@ -168,9 +170,8 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
       .getStatusDistribution()
       .then((res) => {
         const { data } = res;
-
-        const ids = data.map((item: any) => item._id);
-        const counts = data.map((item: any) => item.count);
+        const ids = data.map((item: dataChart) => item._id);
+        const counts = data.map((item: dataChart) => item.count);
 
         setDataExperience((prev) => ({
           ...prev,
@@ -178,14 +179,24 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
             title: "Đánh giá trạng thái sử dụng API",
             type: "bar",
             labels: ids,
+            option: { indexAxis: "y" },
             datasets: [
               {
+                ...configChartDefault,
                 label: "Lượt truy cập",
                 data: counts,
-                fill: false,
-                borderColor: "#42A5F5",
-                tension: 0.4,
-                backgroundColor: ["red", "blue", "yellow", "green", "purple"],
+                backgroundColor: [
+                  "rgba(255, 206, 86, 0.2)",
+                  "rgba(75, 192, 192, 0.2)",
+                  "rgba(153, 102, 255, 0.2)",
+                  "rgba(255, 159, 64, 0.2)",
+                ],
+                borderColor: [
+                  "rgba(255, 206, 86, 1)",
+                  "rgba(75, 192, 192, 1)",
+                  "rgba(153, 102, 255, 1)",
+                  "rgba(255, 159, 64, 1)",
+                ],
               },
             ],
           },
@@ -197,9 +208,9 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
       .getFeedbackRating()
       .then((res) => {
         const { data } = res;
-        const ids = data.map((item: any) => item._id);
-        const counts = data.map((item: any) => item.count);
-        const averageRating = data.map((item: any) =>
+        const ids = data.map((item: dataChart) => item._id);
+        const counts = data.map((item: dataChart) => item.count);
+        const averageRating = data.map((item: dataChart) =>
           item.averageRating.toFixed(1)
         );
 
@@ -252,7 +263,7 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
-        setGridWidth(containerRef.current.offsetWidth);
+        setGridWidth(containerRef.current.offsetWidth - 20);
       }
     };
 
@@ -266,6 +277,7 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
       resizeObserver.disconnect();
     };
   }, []);
+
   return (
     <div ref={containerRef} style={{ width: "100%", height: "auto" }}>
       <GridLayout
@@ -297,10 +309,16 @@ const DashboardPage = ({ pathName }: { pathName: string }) => {
               </div>
               <div style={{ flexGrow: 1 }}>
                 {type === "line" && (
-                  <Line data={{ labels, datasets }} options={chartOptions} />
+                  <Line
+                    data={{ labels, datasets }}
+                    options={{ ...chartOptions }}
+                  />
                 )}
                 {type === "bar" && (
-                  <Bar data={{ labels, datasets }} options={chartOptions} />
+                  <Bar
+                    data={{ labels, datasets }}
+                    options={{ ...chartOptions, ...option }}
+                  />
                 )}
                 {type === "pie" && (
                   <Pie data={{ labels, datasets }} options={chartOptions} />
