@@ -98,10 +98,10 @@ const DashboardPage = () => {
   const [gridWidth, setGridWidth] = useState(0);
 
   const [layout, setLayout] = useState([
-    { i: "timeDistributon", x: 0, y: 0, w: 4, h: 3 },
-    { i: "platformStats", x: 4, y: 0, w: 4, h: 3 },
-    { i: "statusDistribution", x: 8, y: 0, w: 4, h: 3 },
-    { i: "feedbackRating", x: 0, y: 3, w: 4, h: 3 },
+    { i: "timeDistributon", x: 0, y: 0, w: 6, h: 4 },
+    { i: "platformStats", x: 6, y: 0, w: 6, h: 4 },
+    { i: "statusDistribution", x: 0, y: 4, w: 6, h: 4 },
+    { i: "feedbackRating", x: 6, y: 4, w: 6, h: 4 },
   ]);
 
   const [dataExperience, setDataExperience] = useState<DataUserExperience>({});

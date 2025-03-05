@@ -25,6 +25,7 @@
 		"@mui/icons-material": "^6.4.6",
 		"@mui/material": "^6.4.6",
 		"@toolpad/core": "^0.12.0",
+		"@types/react-world-flags": "^1.6.0",
 		"axios": "^1.8.1",
 		"chart.js": "^4.4.8",
 		"i18next": "^24.2.2",
@@ -35,7 +36,8 @@
 		"react-dom": "18.3.1",
 		"react-grid-layout": "^1.5.0",
 		"react-i18next": "^15.4.1",
-		"react-resizable": "^3.0.5"
+		"react-resizable": "^3.0.5",
+		"react-world-flags": "^1.6.0"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "19.5.0",
