@@ -18,6 +18,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 // import { useTranslation } from "react-i18next";
 import userExperienceAPI from "api/customerExperienceAPI";
+import { backgroundColor, borderColor } from "api/constants/colors";
 
 Chart.register(
   CategoryScale,
@@ -44,7 +45,7 @@ export const chartContainerStyle: React.CSSProperties = {
   border: "1px solid #ccc",
 };
 
-export const chartOptions: ChartOptions = {
+const chartOptions: ChartOptions = {
   maintainAspectRatio: false,
   responsive: true,
   plugins: {
@@ -65,12 +66,20 @@ export interface ChartData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   option?: any;
 }
+interface dataMonth {
+  year: number;
+  month: number;
+  count: number;
+}
 
-interface dataChart {
+export interface dataChart {
   _id: string;
   count: number;
   averageRating: number;
   nameType: string;
+  vendorName: string;
+  deviceCount: number;
+  monthlyData: dataMonth[];
 }
 
 export interface responseChart {
@@ -81,7 +90,7 @@ interface DataUserExperience {
   [key: string]: ChartData;
 }
 
-export const cols = 12;
+const cols = 12;
 
 const DashboardPage = () => {
   // const { t } = useTranslation();
@@ -143,22 +152,52 @@ const DashboardPage = () => {
       .getPlatformStats()
       .then((res) => {
         const { data } = res;
-        const ids = data.map((item: dataChart) => item._id);
-        const counts = data.map((item: dataChart) => item.count);
+        const labels = data[0].monthlyData.map(
+          (item: dataMonth) => `${item.month}/${item.year}`
+        );
 
+        const countApp = data[0].monthlyData.map(
+          (item: dataMonth) => `${item.count}`
+        );
+        const countTV = data[1].monthlyData.map(
+          (item: dataMonth) => `${item.count}`
+        );
+
+        const countWeb = data[2].monthlyData.map(
+          (item: dataMonth) => `${item.count}`
+        );
+
+        console.log("labels", labels);
         setDataExperience((prev) => ({
           ...prev,
           platformStats: {
             title: "Số lượng người dùng trên các nền tảng",
             type: "bar",
-            labels: ids,
+            labels: labels,
             datasets: [
               {
                 ...configChartDefault,
-                label: "Lượt truy cập",
-                data: counts,
-                borderColor: "#42A5F5",
-                backgroundColor: ["#FF6384", "#36A2EB", "#FFCE56"],
+                label: "App",
+                data: countApp,
+                borderColor: borderColor[0],
+                backgroundColor: backgroundColor[0],
+                stack: "Stack 0",
+              },
+              {
+                ...configChartDefault,
+                label: "Tv",
+                data: countTV,
+                borderColor: borderColor[1],
+                backgroundColor: backgroundColor[1],
+                stack: "Stack 0",
+              },
+              {
+                ...configChartDefault,
+                label: "Web",
+                data: countWeb,
+                borderColor: borderColor[2],
+                backgroundColor: backgroundColor[2],
+                stack: "Stack 0",
               },
             ],
           },
@@ -238,8 +277,8 @@ const DashboardPage = () => {
                 type: "bar",
                 label: "Số lượt đánh giá",
                 data: counts,
-                backgroundColor: "rgba(54, 162, 235, 0.6)",
-                borderColor: "rgba(54, 162, 235, 1)",
+                borderColor: borderColor[8],
+                backgroundColor: backgroundColor[8],
                 borderWidth: 1,
                 yAxisID: "y-axis-1",
               },
@@ -311,7 +350,7 @@ const DashboardPage = () => {
                 {type === "line" && (
                   <Line
                     data={{ labels, datasets }}
-                    options={{ ...chartOptions }}
+                    options={{ ...chartOptions, ...option }}
                   />
                 )}
                 {type === "bar" && (
@@ -321,7 +360,10 @@ const DashboardPage = () => {
                   />
                 )}
                 {type === "pie" && (
-                  <Pie data={{ labels, datasets }} options={chartOptions} />
+                  <Pie
+                    data={{ labels, datasets }}
+                    options={{ ...chartOptions, ...option }}
+                  />
                 )}
                 {type === "doughnut" && (
                   <Doughnut

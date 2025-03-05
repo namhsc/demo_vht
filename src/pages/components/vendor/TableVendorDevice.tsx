@@ -8,30 +8,38 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import { DeviceTypeMap } from "pages/VendorActivityPage";
 
-const data = [
-  { id: 1, name: "Nguyễn Văn A", age: 25 },
-  { id: 2, name: "Trần Thị B", age: 30 },
-  { id: 3, name: "Lê Văn C", age: 28 },
-];
+interface tabelVendor {
+  _id: {
+    type: number;
+    vendorId: string;
+  };
+  deviceCount: number;
+  deviceType: number;
+  vendorId: string;
+  vendorName: string;
+}
 
-const TableVendorDevice = () => {
+const TableVendorDevice = ({ data }: { data: tabelVendor[] }) => {
   return (
     <TableContainer component={Paper}>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Họ và Tên</TableCell>
-            <TableCell>Tuổi</TableCell>
+            <TableCell>STT</TableCell>
+            <TableCell>Vendor Tên</TableCell>
+            <TableCell>Device Type</TableCell>
+            <TableCell>Số lượng thiết bị</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>{row.id}</TableCell>
-              <TableCell>{row.name}</TableCell>
-              <TableCell>{row.age}</TableCell>
+          {data.map((row: tabelVendor, index) => (
+            <TableRow key={index}>
+              <TableCell>{index + 1}</TableCell>
+              <TableCell>{row.vendorName}</TableCell>
+              <TableCell>{DeviceTypeMap[row.deviceType]}</TableCell>
+              <TableCell>{row.deviceCount}</TableCell>
             </TableRow>
           ))}
         </TableBody>
