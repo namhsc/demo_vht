@@ -8,9 +8,8 @@ import { backgroundColor, borderColor } from "api/constants/colors";
 import RenderChart from "./components/RenderChart";
 import TableFeedback from "./components/vendor/TableFeedback";
 import { LayoutItem } from "app/app";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { layoutDefault } from "constants/layoutGrid";
+import { useTranslation } from "react-i18next";
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const configChartDefault = { fill: false, tension: 0.6, borderWidth: 1 };
@@ -76,13 +75,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   setLayoutDefault,
   pathName,
 }) => {
-  // const { t } = useTranslation();
-  const [isTableVisible, setIsTableVisible] = useState(true);
-  const [total, setTotalItem] = useState(0);
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
 
-  const [dataTable, setDataTable] = useState([]);
   const [queryTable, setQueryTable] = useState<{
     page: number;
     pageSize: number;
@@ -96,7 +92,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
     return savedLayout
       ? JSON.parse(savedLayout)
       : layoutDefault[`layout_${pathName}_default`];
+    // return layoutDefault[`layout_${pathName}_default`];
   });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dataTable, setDataTable] = useState<any>([]);
 
   const [dataExperience, setDataExperience] = useState<DataUserExperience>({});
 
@@ -112,8 +112,43 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       .then((res) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, total } = res as unknown as any;
-        setDataTable(data);
-        setTotalItem(total | 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setDataTable((prev: any) => {
+          const mergedData = [...prev, ...data];
+          const uniqueData = mergedData.filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.id === item.id)
+          );
+          return uniqueData;
+        });
+
+        const mergedData = [...dataTable, ...data];
+        const uniqueData = mergedData.filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => t.id === item.id)
+        );
+
+        setDataExperience((prev) => ({
+          ...prev,
+          tableRating: {
+            title: t("app_review_table"),
+            type: "divCustom",
+            component: () => {
+              return (
+                <div className="w-full h-auto">
+                  <TableFeedback
+                    queryTable={queryTable}
+                    data={uniqueData}
+                    setQueryTable={setQueryTable}
+                    total={total | 0}
+                  />
+                </div>
+              );
+            },
+            labels: [],
+            datasets: [],
+          },
+        }));
       })
       .catch((e) => console.error(e));
   }, [queryTable]);
@@ -123,19 +158,24 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       .getTimeDistribution()
       .then((res: responseChart) => {
         const { data } = res;
-        const ids = data.map((item: dataChart) => item._id);
-        const counts = data.map((item: dataChart) => item.count);
+        const order = ["0-1s", "1-2s", "2-4s", ">4s"];
+        console.log("data", data);
+        const dataRaw = data.sort(
+          (a, b) => order.indexOf(a._id) - order.indexOf(b._id)
+        );
+        const ids = dataRaw.map((item: dataChart) => item._id);
+        const counts = dataRaw.map((item: dataChart) => item.count);
 
         setDataExperience((prev) => ({
           ...prev,
           timeDistributon: {
-            title: "Tỷ lệ trải nghiệm tốc độ API",
+            title: t("api_speed_experience_ratio"),
             type: "doughnut",
             labels: ids,
             datasets: [
               {
                 ...configChartDefault,
-                label: "Lượt",
+                label: t("reviews_count"),
                 data: counts,
                 borderColor: borderColor,
                 backgroundColor: backgroundColor,
@@ -157,7 +197,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         setDataExperience((prev) => ({
           ...prev,
           platformStats: {
-            title: "Số lượng người dùng trên các nền tảng",
+            title: t("user_count_by_platform"),
             type: "doughnut",
             labels: ids,
             datasets: [
@@ -179,7 +219,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       .then((res) => {
         const { data } = res;
         const dataRaw = data.reverse();
-        const ids = dataRaw.map((item: dataChart) => `${item._id} rating`);
         const platforms = ["app", "tv", "web"];
 
         const transformedData = platforms.reduce(
@@ -198,9 +237,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         setDataExperience((prev) => ({
           ...prev,
           feedbackRating: {
-            title: "Bảng đánh giá của khách hàng",
+            title: t("customer_reviews"),
             type: "bar",
-            labels: ids,
+            labels: ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
             datasets: platforms.map((platform, i) => ({
               type: "bar",
               label: platform,
@@ -219,7 +258,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
-        setGridWidth(containerRef.current.offsetWidth - 20);
+        setGridWidth(containerRef.current.offsetWidth - 15);
       }
     };
 
@@ -255,14 +294,15 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
             const dataChar = dataExperience[data.i];
             if (!dataChar) return <div key={data.i}></div>;
 
-            const { title, type, labels, datasets, option } = dataChar;
+            const { title, type, labels, datasets, option, component } =
+              dataChar;
             return (
               <div
                 key={data.i}
                 className="chart-container"
                 style={chartContainerStyle}
               >
-                <div className="drag-handle cursor-grab bg-[#ed023114] p-2">
+                <div className="drag-handle cursor-grab bg-[#ed023114] p-2 font-semibold">
                   {title}
                 </div>
                 <RenderChart
@@ -271,41 +311,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
                   labels={labels}
                   datasets={datasets}
                   option={option}
+                  component={component}
                 />
               </div>
             );
           })}
         </GridLayout>
-      </div>
-
-      <div
-        className={`relative bg-white shadow-lg transition-all duration-300 ${
-          isTableVisible ? "w-[500px] opacity-100" : "w-0 opacity-1"
-        }`}
-      >
-        {isTableVisible && (
-          <div className="w-[500px] h-full overflow-y-auto">
-            <TableFeedback
-              queryTable={queryTable}
-              data={dataTable}
-              setQueryTable={setQueryTable}
-              total={total}
-            />
-          </div>
-        )}
-
-        {/* Nút ẩn/hiện bảng - Luôn đi theo bên phải */}
-        <button
-          onClick={() => setIsTableVisible(!isTableVisible)}
-          style={{ left: "-16px" }}
-          className="absolute top-1/2 -translate-y-1/2 w-8 h-16 bg-gray-200 rounded-l-md flex items-center justify-center shadow-md transition-all"
-        >
-          {isTableVisible ? (
-            <ChevronRightIcon fontSize="small" />
-          ) : (
-            <ChevronLeftIcon fontSize="small" />
-          )}
-        </button>
       </div>
     </>
   );

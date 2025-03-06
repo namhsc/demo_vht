@@ -72,7 +72,7 @@ const RenderChart: React.FC<ChartProps> = ({
   const options = getChartOptions(option);
 
   return (
-    <div style={{ flexGrow: 1, minHeight: 0 }}>
+    <div style={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>
       {type === "divCustom" && component && component()}
       {type === "line" && (
         <Line data={{ labels, datasets }} options={options} />

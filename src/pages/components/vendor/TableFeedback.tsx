@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
+import { useInView } from "react-intersection-observer";
 import {
   Table,
   TableBody,
@@ -7,9 +8,9 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TablePagination,
 } from "@mui/material";
 import { format, parseISO } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface feedback {
   _id: string;
@@ -30,70 +31,73 @@ interface TableFeedbackProps {
 const TableFeedback: React.FC<TableFeedbackProps> = ({
   data,
   setQueryTable,
-  queryTable,
   total,
 }) => {
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setQueryTable((prev) => ({ ...prev, page: newPage }));
-  };
+  const [isFetching, setIsFetching] = useState(false);
+  const { t } = useTranslation();
+  const { ref, inView } = useInView({ threshold: 0.1 });
+  React.useEffect(() => {
+    if (inView && !isFetching && data.length < total) {
+      setIsFetching(true);
+      setQueryTable((prev) => ({ ...prev, page: prev.page + 1 }));
+    }
+  }, [inView, isFetching, data.length, total]);
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setQueryTable({
-      pageSize: parseInt(event.target.value, 10),
-      page: 1,
-    });
-  };
+  React.useEffect(() => {
+    setIsFetching(false);
+  }, [data]);
 
   return (
-    <Paper>
-      <TableContainer component={Paper}>
+    <Paper className="w-full">
+      <TableContainer component={Paper} className="overflow-y-auto">
         <Table>
-          <TableHead>
+          <TableHead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
             <TableRow>
               {[
-                "STT",
-                "Người dùng",
-                "Nền tảng",
-                "Điểm",
-                "Tin nhắn",
-                "hời điểm",
+                t("stt"),
+                t("username"),
+                t("platform"),
+                t("rating"),
+                t("message"),
+                t("timestamp"),
               ].map((title) => (
                 <TableCell
                   key={title}
-                  className="whitespace-nowrap overflow-hidden text-ellipsis"
+                  style={{ fontWeight: "bold" }}
+                  className="whitespace-nowrap font-bold text-center uppercase p-3"
                 >
                   {title}
                 </TableCell>
               ))}
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {data.map((row: feedback, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{row.name}</TableCell>
-                <TableCell>{row.platform}</TableCell>
-                <TableCell>{row.rating}</TableCell>
-                <TableCell>{row.message}</TableCell>
-                <TableCell>
+            {data.map((row, index) => (
+              <TableRow
+                key={index}
+                className={
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50 hover:bg-gray-100"
+                }
+              >
+                <TableCell className="text-center">{index + 1}</TableCell>
+                <TableCell className="text-center">{row.name}</TableCell>
+                <TableCell className="text-center">{row.platform}</TableCell>
+                <TableCell className="text-center">{row.rating}</TableCell>
+                <TableCell className="text-center">{row.message}</TableCell>
+                <TableCell className="text-center">
                   {format(parseISO(row.createAt), "dd/MM/yyyy HH:mm")}
                 </TableCell>
               </TableRow>
             ))}
+            <TableRow ref={ref}>
+              <TableCell colSpan={6} className="text-center text-gray-500 p-3">
+                {isFetching ? "Đang tải thêm dữ liệu..." : ""}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
-        component="div"
-        count={total}
-        rowsPerPage={queryTable.pageSize}
-        page={queryTable.page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
     </Paper>
   );
 };

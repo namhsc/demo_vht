@@ -16,8 +16,7 @@ import RenderChart from "./components/RenderChart";
 import useDeviceTypeMap from "hooks/useDeviceTypeMap";
 import { LayoutItem } from "app/app";
 import { layoutDefault } from "constants/layoutGrid";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { useTranslation } from "react-i18next";
 
 interface DataVendorActivity {
   [key: string]: ChartData;
@@ -34,9 +33,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
   setLayoutDefault,
   pathName,
 }) => {
-  const [isTableVisible, setIsTableVisible] = useState(true);
-  // const { t } = useTranslation();
-  const [total, setTotalItem] = useState(0);
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
   const deviceTypeMap = useDeviceTypeMap();
@@ -45,9 +42,11 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
     return savedLayout
       ? JSON.parse(savedLayout)
       : layoutDefault[`layout_${pathName}_default`];
+    // return layoutDefault[`layout_${pathName}_default`];
   });
 
-  const [dataTable, setDataTable] = useState([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dataTable, setDataTable] = useState<any>([]);
   const [queryTable, setQueryTable] = useState<{
     page: number;
     pageSize: number;
@@ -61,6 +60,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
   useEffect(() => {
     if (setLayoutDefault) {
       setLayoutDefault(layout);
+      console.log(layout);
     }
   }, [layout, setLayoutDefault]);
 
@@ -70,8 +70,52 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
       .then((res) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data, total } = res as unknown as any;
-        setDataTable(data);
-        setTotalItem(total | 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setDataTable((prev: any) => {
+          const mergedData = [...prev, ...data];
+          const uniqueData = mergedData.filter(
+            (item, index, self) =>
+              index ===
+              self.findIndex(
+                (t) =>
+                  `${t.vendorId}-${t.deviceType}` ===
+                  `${item.vendorId}-${item.deviceType}`
+              )
+          );
+          return uniqueData;
+        });
+
+        const mergedData = [...dataTable, ...data];
+        const uniqueData = mergedData.filter(
+          (item, index, self) =>
+            index ===
+            self.findIndex(
+              (t) =>
+                `${t.vendorId}-${t.deviceType}` ===
+                `${item.vendorId}-${item.deviceType}`
+            )
+        );
+        setDataVendor((prev) => ({
+          ...prev,
+          tableVendor: {
+            title: t("vendor_device_statistics"),
+            type: "divCustom",
+            component: () => {
+              return (
+                <div className="w-full h-auto">
+                  <TableVendorDevice
+                    queryTable={queryTable}
+                    data={uniqueData}
+                    setQueryTable={setQueryTable}
+                    total={total | 0}
+                  />
+                </div>
+              );
+            },
+            labels: [],
+            datasets: [],
+          },
+        }));
       })
       .catch((e) => console.error(e));
   }, [queryTable]);
@@ -95,7 +139,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           countDeviceByTy: {
-            title: "Số lượng thiết bị mỗi loại",
+            title: t("device_count_per_type"),
             type: "bar",
             labels: ids,
             option: {
@@ -110,7 +154,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Thiết bị mới",
+                label: t("new_device"),
                 data: counts,
                 borderColor: border,
                 backgroundColor: colors,
@@ -131,7 +175,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           newDeviceVendor: {
-            title: "Số lượng thiết bị mới",
+            title: t("new_device_count"),
             type: "line",
             labels: ids,
             option: {
@@ -145,7 +189,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Thiết bị mơi",
+                label: t("new_device"),
                 data: counts,
                 borderColor: borderColor[2],
                 backgroundColor: backgroundColor[2],
@@ -166,7 +210,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           countDeviceByVendor: {
-            title: "Số lượng thiết bị của Vendor",
+            title: t("vendor_device_statistics"),
             type: "bar",
             labels: ids,
             option: {
@@ -177,7 +221,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Số lượng thiết bị",
+                label: t("device_count"),
                 data: counts,
                 borderColor: borderColor[0],
                 backgroundColor: backgroundColor[0],
@@ -192,7 +236,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
-        setGridWidth(containerRef.current.offsetWidth - 30);
+        setGridWidth(containerRef.current.offsetWidth - 40);
       }
     };
 
@@ -228,7 +272,8 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
             const dataChar = dataVendor[data.i];
             if (!dataChar) return <div key={data.i}></div>;
 
-            const { title, type, labels, datasets, option } = dataChar;
+            const { title, type, labels, datasets, option, component } =
+              dataChar;
             return (
               <div
                 key={data.i}
@@ -236,7 +281,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
                 style={chartContainerStyle}
               >
                 <div
-                  className="drag-handle"
+                  className="drag-handle font-semibold"
                   style={{
                     cursor: "grab",
                     background: "#ed023114",
@@ -251,39 +296,12 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
                   labels={labels}
                   datasets={datasets}
                   option={option}
+                  component={component}
                 />
               </div>
             );
           })}
         </GridLayout>
-      </div>
-      <div
-        className={`relative bg-white shadow-lg transition-all duration-300 ${
-          isTableVisible ? "w-[500px] opacity-100" : "w-0 opacity-1"
-        }`}
-      >
-        {isTableVisible && (
-          <div className="w-[500px] h-full overflow-y-auto">
-            <TableVendorDevice
-              queryTable={queryTable}
-              data={dataTable}
-              setQueryTable={setQueryTable}
-              total={total}
-            />
-          </div>
-        )}
-
-        <button
-          onClick={() => setIsTableVisible(!isTableVisible)}
-          style={{ left: "-16px" }}
-          className="absolute top-1/2 -translate-y-1/2 w-8 h-16 bg-gray-200 rounded-l-md flex items-center justify-center shadow-md transition-all"
-        >
-          {isTableVisible ? (
-            <ChevronRightIcon fontSize="small" />
-          ) : (
-            <ChevronLeftIcon fontSize="small" />
-          )}
-        </button>
       </div>
     </>
   );

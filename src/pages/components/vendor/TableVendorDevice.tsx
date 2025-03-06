@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import {
   Table,
   TableBody,
@@ -7,9 +7,10 @@ import {
   TableHead,
   TableRow,
   Paper,
-  TablePagination,
 } from "@mui/material";
 import useDeviceTypeMap from "hooks/useDeviceTypeMap";
+import { useInView } from "react-intersection-observer";
+import { useTranslation } from "react-i18next";
 
 interface tabelVendor {
   _id: {
@@ -32,62 +33,70 @@ interface TableVendorProps {
 const TableVendorDevice: React.FC<TableVendorProps> = ({
   data,
   setQueryTable,
-  queryTable,
   total,
 }) => {
-  const handleChangePage = (_event: unknown, newPage: number) => {
-    setQueryTable((prev) => ({ ...prev, page: newPage }));
-  };
+  const { t } = useTranslation();
   const deviceTypeMap = useDeviceTypeMap();
+  const [isFetching, setIsFetching] = useState(false);
+  const { ref, inView } = useInView({ threshold: 0.1 });
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setQueryTable({
-      pageSize: parseInt(event.target.value, 10),
-      page: 1,
-    });
-  };
+  React.useEffect(() => {
+    if (inView && !isFetching && data.length < total) {
+      setIsFetching(true);
+      setQueryTable((prev) => ({ ...prev, page: prev.page + 1 }));
+    }
+  }, [inView, isFetching, data.length, total]);
+
+  React.useEffect(() => {
+    setIsFetching(false);
+  }, [data]);
 
   return (
-    <Paper>
-      <TableContainer component={Paper}>
+    <Paper className="w-full">
+      <TableContainer component={Paper} className="overflow-y-auto">
         <Table>
-          <TableHead>
+          <TableHead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
             <TableRow>
-              {["STT", "Vendor Tên", "Device Type", "Số lượng thiết bị"].map(
-                (title) => (
-                  <TableCell
-                    key={title}
-                    className="whitespace-nowrap overflow-hidden text-ellipsis"
-                  >
-                    {title}
-                  </TableCell>
-                )
-              )}
+              {[
+                t("stt"),
+                t("vendor_name"),
+                t("device_type"),
+                t("device_count"),
+              ].map((title) => (
+                <TableCell
+                  key={title}
+                  style={{ fontWeight: "bold" }}
+                  className="whitespace-nowrap font-bold text-center uppercase p-3"
+                >
+                  {title}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {data.map((row: tabelVendor, index) => (
-              <TableRow key={index}>
-                <TableCell>{index + 1}</TableCell>
-                <TableCell>{row.vendorName}</TableCell>
-                <TableCell>{deviceTypeMap.get(row.deviceType)}</TableCell>
-                <TableCell>{row.deviceCount}</TableCell>
+              <TableRow
+                key={index}
+                className={
+                  index % 2 === 0 ? "bg-white" : "bg-gray-50 hover:bg-gray-100"
+                }
+              >
+                <TableCell className="text-center">{index + 1}</TableCell>
+                <TableCell className="text-center">{row.vendorName}</TableCell>
+                <TableCell className="text-center">
+                  {deviceTypeMap.get(row.deviceType)}
+                </TableCell>
+                <TableCell className="text-center">{row.deviceCount}</TableCell>
               </TableRow>
             ))}
+            <TableRow ref={ref}>
+              <TableCell colSpan={4} className="text-center text-gray-500 p-3">
+                {isFetching ? t("loading_more_data") : ""}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 20, 50]}
-        component="div"
-        count={total}
-        rowsPerPage={queryTable.pageSize}
-        page={queryTable.page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
     </Paper>
   );
 };

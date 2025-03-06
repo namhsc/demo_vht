@@ -25,7 +25,7 @@ export interface LayoutItem {
 function DemoPageContent({ pathName }: { pathName: string }) {
   const PageComponent = ROUTES[pathName] || DashboardPage;
   const [layoutDefault, setLayoutDefault] = useState<LayoutItem[]>();
-
+  console.log("pathName", pathName);
   useEffect(() => {
     if (layoutDefault) {
       const filteredLayout = layoutDefault.map(({ i, x, y, w, h }) => ({
@@ -69,7 +69,7 @@ interface DemoProps {
 export default function App(props: DemoProps) {
   const { window } = props;
   const { session, authentication } = useAuth();
-  const router = useDemoRouter("/user_experience");
+  const router = useDemoRouter("/dashboard/user_experience");
 
   // Remove this const when copying and pasting into your project.
   const demoWindow = window !== undefined ? window() : undefined;
@@ -90,7 +90,7 @@ export default function App(props: DemoProps) {
           />
         ),
         title: "",
-        homeUrl: "/user_experience",
+        homeUrl: "/dashboard/user_experience",
       }}
       session={session}
       authentication={authentication}

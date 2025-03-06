@@ -15,6 +15,7 @@ import businessAPI from "api/businessAPI";
 import StatCard from "./components/business/StatCard";
 import { LayoutItem } from "app/app";
 import { layoutDefault } from "constants/layoutGrid";
+import { useTranslation } from "react-i18next";
 
 interface DataBusinessActivity {
   [key: string]: ChartData;
@@ -32,15 +33,15 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
   setLayoutDefault,
   pathName,
 }) => {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
-  const [layout, setLayout] = useState(
-    // const savedLayout = localStorage.getItem(`layout_${pathName}`);
-    // return savedLayout
-    //   ? JSON.parse(savedLayout)
-    //   :
-    layoutDefault[`layout_${pathName}_default`]
-  );
+  const [layout, setLayout] = useState(() => {
+    const savedLayout = localStorage.getItem(`layout_${pathName}`);
+    return savedLayout
+      ? JSON.parse(savedLayout)
+      : layoutDefault[`layout_${pathName}_default`];
+  });
 
   const [dataBusiness, setDataBusiness] = useState<DataBusinessActivity>({});
 
@@ -59,7 +60,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           countUp: {
-            title: "Tổng người dùng",
+            title: t("total_users"),
             type: "divCustom",
             labels: [],
             option: { indexAxis: "y" },
@@ -74,7 +75,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
                     height: "100%",
                   }}
                 >
-                  <div>
+                  <div className="h-full flex justify-center items-center flex-col">
                     <StatCard
                       total={data?.totalUser}
                       change={data?.newUserInMonth}
@@ -85,7 +86,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
                           100
                         ).toFixed(2)
                       )}
-                      label="Tổng khách hàng"
+                      label={t("total_customers")}
                     />
                   </div>
                 </div>
@@ -94,7 +95,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Số lượng thiết bị",
+                label: t("device_count"),
                 data: [],
                 borderColor: borderColor[0],
                 backgroundColor: backgroundColor[0],
@@ -102,7 +103,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             ],
           },
           countOut: {
-            title: "Người dùng rời mạng",
+            title: t("users_disconnected"),
             type: "divCustom",
             labels: [],
             option: { indexAxis: "y" },
@@ -117,12 +118,12 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
                     height: "100%",
                   }}
                 >
-                  <div>
+                  <div className="h-full flex justify-center items-center flex-col">
                     <StatCard
                       total={data?.userNotUsing || 0}
                       change={0}
                       percentage={0}
-                      label="Số người rời mạng"
+                      label={t("disconnected_users_count")}
                       isHide
                     />
                   </div>
@@ -132,7 +133,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Số lượng thiết bị",
+                label: t("device_count"),
                 data: [],
                 borderColor: borderColor[0],
                 backgroundColor: backgroundColor[0],
@@ -152,19 +153,19 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           typeUser: {
-            title: "Tỷ lệ thuê bao đăng ký",
+            title: t("subscription_rate"),
             type: "divCustom",
-            labels: ["Trả trước", "Trả sau"],
+            labels: [t("prepaid"), t("postpaid")],
             component: () => {
               return (
-                <div className="p-4 bg-white rounded-lg text-center">
+                <div className="p-4 bg-white rounded-lg text-center h-full flex justify-center items-center flex-col">
                   <div className="text-xl font-bold text-gray-800">
-                    Tổng số: {counts[0] + counts[1]} thuê bao
+                    {t("Total")}: {counts[0] + counts[1]} {t("subscribers")}
                   </div>
 
                   <div className="flex justify-center items-center mt-2 text-gray-600">
                     <span className="mr-4">
-                      Trả trước:
+                      {t("prepaid")}:
                       <span className="text-blue-500 font-semibold">
                         {counts[0]} (
                         {((counts[0] / (counts[0] + counts[1])) * 100).toFixed(
@@ -177,7 +178,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
                     <div className="w-[2px] h-6 bg-gray-300"></div>
 
                     <span className="ml-4">
-                      Trả sau:
+                      {t("postpaid")}:
                       <span className="text-green-500 font-semibold">
                         {counts[1]} (
                         {((counts[1] / (counts[0] + counts[1])) * 100).toFixed(
@@ -193,7 +194,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Số thuê bao",
+                label: t("subscriber_count"),
                 data: counts,
                 borderColor: borderColor,
                 backgroundColor: backgroundColor,
@@ -216,7 +217,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           revenueTotal: {
-            title: "Doanh thu (VNĐ)",
+            title: t("revenue_vnd"),
             type: "line",
             labels: labels,
             option: {
@@ -228,7 +229,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "VNĐ",
+                label: t("vnd"),
                 data: counts,
                 borderColor: borderColor[2],
                 backgroundColor: backgroundColor[2],
@@ -248,14 +249,14 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           userService: {
-            title: "Tỷ lệ sử dụng dịch vụ",
+            title: t("service_usage_rate"),
             type: "divCustom",
             labels: labels,
             component: () => {
               return (
-                <div className="p-4 bg-white rounded-lg text-center">
+                <div className="p-4 bg-white rounded-lg text-center h-full flex justify-center items-center flex-col">
                   <div className="text-xl font-bold text-gray-800">
-                    Tổng số: {counts[0] + counts[1]} gói
+                    {t("total")}: {counts[0] + counts[1]} {t("package")}
                   </div>
 
                   <div className="flex justify-center items-center mt-2 text-gray-600">
@@ -288,7 +289,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             datasets: [
               {
                 ...configChartDefault,
-                label: "Số lượng sử dụng",
+                label: t("usage_count"),
                 data: counts,
                 borderColor: borderColor,
                 backgroundColor: backgroundColor,
@@ -304,17 +305,17 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
       .then((res) => {
         const { data } = res;
         const counts = data.map((item: dataChart) => item.count);
-        const labels = data.map((item: dataChart) => `${item._id} ngày`);
+        const labels = data.map((item: dataChart) => `${item._id} ${t("day")}`);
         setDataBusiness((prev) => ({
           ...prev,
           totalUserPackage: {
-            title: "Tổng người dùng đăng ký",
+            title: t("total_registered_users"),
             type: "pie",
             labels: labels,
             datasets: [
               {
                 ...configChartDefault,
-                label: "Số lượng đăng ký",
+                label: t("registration_count"),
                 data: counts,
                 borderColor: borderColor,
                 backgroundColor: backgroundColor,
@@ -358,7 +359,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           totalServicePerMonth: {
-            title: "Số lượng dịch vụ đăng ký theo tháng",
+            title: t("monthly_service_registrations"),
             type: "line",
             labels: labels,
             option: {
@@ -369,7 +370,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             datasets: Object.values(transformedData).map((item, i) => {
               return {
                 ...configChartDefault,
-                label: Object.keys(transformedData)[i] + " ngày",
+                label: Object.keys(transformedData)[i] + " " + t("day"),
                 data: item,
                 borderColor: borderColor,
                 backgroundColor: backgroundColor,
@@ -426,11 +427,10 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
               className="chart-container"
               style={chartContainerStyle}
             >
-              <div className="drag-handle cursor-grab bg-[#ed023114] p-2">
+              <div className="drag-handle cursor-grab bg-[#ed023114] p-2 font-semibold">
                 {title}
               </div>
               <RenderChart
-                // key={gridWidth}
                 type={type}
                 labels={labels}
                 datasets={datasets}
