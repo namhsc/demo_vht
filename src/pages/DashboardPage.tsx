@@ -131,11 +131,18 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         setDataExperience((prev) => ({
           ...prev,
           tableRating: {
-            title: t("app_review_table"),
+            title: "app_review_table",
             type: "divCustom",
             component: () => {
               return (
-                <div className="w-full h-auto">
+                <div
+                  className="w-full h-auto"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    overflow: "auto",
+                  }}
+                >
                   <TableFeedback
                     queryTable={queryTable}
                     data={uniqueData}
@@ -159,7 +166,6 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       .then((res: responseChart) => {
         const { data } = res;
         const order = ["0-1s", "1-2s", "2-4s", ">4s"];
-        console.log("data", data);
         const dataRaw = data.sort(
           (a, b) => order.indexOf(a._id) - order.indexOf(b._id)
         );
@@ -169,13 +175,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         setDataExperience((prev) => ({
           ...prev,
           timeDistributon: {
-            title: t("api_speed_experience_ratio"),
+            title: "api_speed_experience_ratio",
             type: "doughnut",
             labels: ids,
             datasets: [
               {
                 ...configChartDefault,
-                label: t("reviews_count"),
+                label: t("api_usage_count"),
                 data: counts,
                 borderColor: borderColor,
                 backgroundColor: backgroundColor,
@@ -197,7 +203,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         setDataExperience((prev) => ({
           ...prev,
           platformStats: {
-            title: t("user_count_by_platform"),
+            title: "user_count_by_platform",
             type: "doughnut",
             labels: ids,
             datasets: [
@@ -237,7 +243,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         setDataExperience((prev) => ({
           ...prev,
           feedbackRating: {
-            title: t("customer_reviews"),
+            title: "customer_reviews",
             type: "bar",
             labels: ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
             datasets: platforms.map((platform, i) => ({
@@ -302,11 +308,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
                 className="chart-container"
                 style={chartContainerStyle}
               >
-                <div className="drag-handle cursor-grab bg-[#ed023114] p-2 font-semibold">
-                  {title}
-                </div>
                 <RenderChart
-                  // key={gridWidth}
+                  title={title}
                   type={type}
                   labels={labels}
                   datasets={datasets}

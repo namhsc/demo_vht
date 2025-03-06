@@ -61,5 +61,6 @@
   "monthly_service_registrations": "Số lượng dịch vụ đăng ký theo tháng",
   "vendor_name": "Vendor Tên",
   "device_type": "Loại thiết bị",
-  "loading_more_data": "Đang tải thêm dữ liệu..."
+  "loading_more_data": "Đang tải thêm dữ liệu...",
+  "api_usage_count": "Số lượt sử dụng API"
 }

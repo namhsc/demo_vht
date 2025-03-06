@@ -98,11 +98,18 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           tableVendor: {
-            title: t("vendor_device_statistics"),
+            title: "vendor_device_statistics",
             type: "divCustom",
             component: () => {
               return (
-                <div className="w-full h-auto">
+                <div
+                  className="w-full h-auto"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    overflow: "auto",
+                  }}
+                >
                   <TableVendorDevice
                     queryTable={queryTable}
                     data={uniqueData}
@@ -139,7 +146,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           countDeviceByTy: {
-            title: t("device_count_per_type"),
+            title: "device_count_per_type",
             type: "bar",
             labels: ids,
             option: {
@@ -175,7 +182,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           newDeviceVendor: {
-            title: t("new_device_count"),
+            title: "new_device_count",
             type: "line",
             labels: ids,
             option: {
@@ -210,7 +217,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
         setDataVendor((prev) => ({
           ...prev,
           countDeviceByVendor: {
-            title: t("vendor_device_statistics"),
+            title: "vendor_device_statistics",
             type: "bar",
             labels: ids,
             option: {
@@ -280,18 +287,8 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
                 className="chart-container"
                 style={chartContainerStyle}
               >
-                <div
-                  className="drag-handle font-semibold"
-                  style={{
-                    cursor: "grab",
-                    background: "#ed023114",
-                    padding: 5,
-                  }}
-                >
-                  {title}
-                </div>
                 <RenderChart
-                  // key={gridWidth}
+                  title={title}
                   type={type}
                   labels={labels}
                   datasets={datasets}

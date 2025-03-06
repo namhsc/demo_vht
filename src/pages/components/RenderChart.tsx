@@ -15,6 +15,7 @@ import {
 } from "chart.js";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
+import { useTranslation } from "react-i18next";
 
 Chart.register(
   CategoryScale,
@@ -60,6 +61,7 @@ interface ChartProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   option?: any;
   component?: () => JSX.Element;
+  title: string;
 }
 
 const RenderChart: React.FC<ChartProps> = ({
@@ -68,21 +70,38 @@ const RenderChart: React.FC<ChartProps> = ({
   datasets,
   option,
   component,
+  title,
 }) => {
+  const { t } = useTranslation();
   const options = getChartOptions(option);
 
   return (
-    <div style={{ flexGrow: 1, minHeight: 0, overflow: "auto" }}>
-      {type === "divCustom" && component && component()}
-      {type === "line" && (
-        <Line data={{ labels, datasets }} options={options} />
-      )}
-      {type === "bar" && <Bar data={{ labels, datasets }} options={options} />}
-      {type === "pie" && <Pie data={{ labels, datasets }} options={options} />}
-      {type === "doughnut" && (
-        <Doughnut data={{ labels, datasets }} options={options} />
-      )}
-    </div>
+    <>
+      <div className="drag-handle cursor-grab bg-[#ed023114] p-2 font-semibold">
+        {t(title)}
+      </div>
+      <div
+        style={{
+          flexGrow: 1,
+          minHeight: 0,
+          // overflow: type === "divCustom" ? "auto" : "none",
+        }}
+      >
+        {type === "divCustom" && component && component()}
+        {type === "line" && (
+          <Line data={{ labels, datasets }} options={options} />
+        )}
+        {type === "bar" && (
+          <Bar data={{ labels, datasets }} options={options} />
+        )}
+        {type === "pie" && (
+          <Pie data={{ labels, datasets }} options={options} />
+        )}
+        {type === "doughnut" && (
+          <Doughnut data={{ labels, datasets }} options={options} />
+        )}
+      </div>
+    </>
   );
 };
 

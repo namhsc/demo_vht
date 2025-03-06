@@ -59,5 +59,6 @@
   "vendor_device_count": "Number of Devices of Vendor",
   "vendor_name": "Vendor Name",
   "device_type": "Device Type",
-  "loading_more_data": "Loading more data..."
+  "loading_more_data": "Loading more data...",
+  "api_usage_count": "Number of API Calls"
 }

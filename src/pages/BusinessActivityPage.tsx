@@ -60,7 +60,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           countUp: {
-            title: t("total_users"),
+            title: "total_users",
             type: "divCustom",
             labels: [],
             option: { indexAxis: "y" },
@@ -103,7 +103,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             ],
           },
           countOut: {
-            title: t("users_disconnected"),
+            title: "users_disconnected",
             type: "divCustom",
             labels: [],
             option: { indexAxis: "y" },
@@ -153,7 +153,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           typeUser: {
-            title: t("subscription_rate"),
+            title: "subscription_rate",
             type: "divCustom",
             labels: [t("prepaid"), t("postpaid")],
             component: () => {
@@ -217,7 +217,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           revenueTotal: {
-            title: t("revenue_vnd"),
+            title: "revenue_vnd",
             type: "line",
             labels: labels,
             option: {
@@ -249,7 +249,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           userService: {
-            title: t("service_usage_rate"),
+            title: "service_usage_rate",
             type: "divCustom",
             labels: labels,
             component: () => {
@@ -309,7 +309,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           totalUserPackage: {
-            title: t("total_registered_users"),
+            title: "total_registered_users",
             type: "pie",
             labels: labels,
             datasets: [
@@ -359,7 +359,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         setDataBusiness((prev) => ({
           ...prev,
           totalServicePerMonth: {
-            title: t("monthly_service_registrations"),
+            title: "monthly_service_registrations",
             type: "line",
             labels: labels,
             option: {
@@ -427,10 +427,8 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
               className="chart-container"
               style={chartContainerStyle}
             >
-              <div className="drag-handle cursor-grab bg-[#ed023114] p-2 font-semibold">
-                {title}
-              </div>
               <RenderChart
+                title={title}
                 type={type}
                 labels={labels}
                 datasets={datasets}
