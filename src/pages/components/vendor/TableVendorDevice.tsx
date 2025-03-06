@@ -26,12 +26,14 @@ interface TableVendorProps {
   data: tabelVendor[];
   queryTable: { page: number; pageSize: number };
   setQueryTable: Dispatch<SetStateAction<{ page: number; pageSize: number }>>;
+  total: number;
 }
 
 const TableVendorDevice: React.FC<TableVendorProps> = ({
   data,
   setQueryTable,
   queryTable,
+  total,
 }) => {
   const handleChangePage = (_event: unknown, newPage: number) => {
     setQueryTable((prev) => ({ ...prev, page: newPage }));
@@ -53,10 +55,16 @@ const TableVendorDevice: React.FC<TableVendorProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>STT</TableCell>
-              <TableCell>Vendor Tên</TableCell>
-              <TableCell>Device Type</TableCell>
-              <TableCell>Số lượng thiết bị</TableCell>
+              {["STT", "Vendor Tên", "Device Type", "Số lượng thiết bị"].map(
+                (title) => (
+                  <TableCell
+                    key={title}
+                    className="whitespace-nowrap overflow-hidden text-ellipsis"
+                  >
+                    {title}
+                  </TableCell>
+                )
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -74,7 +82,7 @@ const TableVendorDevice: React.FC<TableVendorProps> = ({
       <TablePagination
         rowsPerPageOptions={[10, 20, 50]}
         component="div"
-        count={data.length}
+        count={total}
         rowsPerPage={queryTable.pageSize}
         page={queryTable.page}
         onPageChange={handleChangePage}

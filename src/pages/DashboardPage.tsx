@@ -8,6 +8,8 @@ import { backgroundColor, borderColor } from "api/constants/colors";
 import RenderChart from "./components/RenderChart";
 import TableFeedback from "./components/vendor/TableFeedback";
 import { LayoutItem } from "app/app";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import { layoutDefault } from "constants/layoutGrid";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -65,6 +67,7 @@ interface DataUserExperience {
 const cols = 12;
 
 interface DashboardPageProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setLayoutDefault?: React.Dispatch<React.SetStateAction<any>>;
   pathName?: string;
 }
@@ -74,6 +77,8 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   pathName,
 }) => {
   // const { t } = useTranslation();
+  const [isTableVisible, setIsTableVisible] = useState(true);
+  const [total, setTotalItem] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
 
@@ -105,8 +110,10 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
     userExperienceAPI
       .getDataListFeedback(queryTable)
       .then((res) => {
-        const { data } = res;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, total } = res as unknown as any;
         setDataTable(data);
+        setTotalItem(total | 0);
       })
       .catch((e) => console.error(e));
   }, [queryTable]);
@@ -173,13 +180,13 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
         const { data } = res;
         const dataRaw = data.reverse();
         const ids = dataRaw.map((item: dataChart) => `${item._id} rating`);
-        // 🔹 1. Lấy danh sách tất cả platform (app, tv, web)
         const platforms = ["app", "tv", "web"];
 
-        // 🔹 2. Tạo object chứa platform với danh sách count theo đúng thứ tự _id
         const transformedData = platforms.reduce(
           (acc, platform) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             acc[platform] = dataRaw.map(({ platforms }: any) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               const found = platforms.find((p: any) => p.platform === platform);
               return found ? found.count : 0;
             });
@@ -228,8 +235,12 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "auto", display: "flex" }}>
-      <div style={{ flex: 1 }} ref={containerRef}>
+    <>
+      <div
+        className="flex-1"
+        ref={containerRef}
+        style={{ width: "100%", height: "auto", display: "flex" }}
+      >
         <GridLayout
           key={JSON.stringify(dataExperience)}
           className="layout"
@@ -251,18 +262,11 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
                 className="chart-container"
                 style={chartContainerStyle}
               >
-                <div
-                  className="drag-handle"
-                  style={{
-                    cursor: "grab",
-                    background: "#ed023114",
-                    padding: 5,
-                  }}
-                >
+                <div className="drag-handle cursor-grab bg-[#ed023114] p-2">
                   {title}
                 </div>
                 <RenderChart
-                  key={gridWidth}
+                  // key={gridWidth}
                   type={type}
                   labels={labels}
                   datasets={datasets}
@@ -273,14 +277,37 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
           })}
         </GridLayout>
       </div>
-      <div style={{ width: "500px", minWidth: "500px" }}>
-        <TableFeedback
-          queryTable={queryTable}
-          data={dataTable}
-          setQueryTable={setQueryTable}
-        />
+
+      <div
+        className={`relative bg-white shadow-lg transition-all duration-300 ${
+          isTableVisible ? "w-[500px] opacity-100" : "w-0 opacity-1"
+        }`}
+      >
+        {isTableVisible && (
+          <div className="w-[500px] h-full overflow-y-auto">
+            <TableFeedback
+              queryTable={queryTable}
+              data={dataTable}
+              setQueryTable={setQueryTable}
+              total={total}
+            />
+          </div>
+        )}
+
+        {/* Nút ẩn/hiện bảng - Luôn đi theo bên phải */}
+        <button
+          onClick={() => setIsTableVisible(!isTableVisible)}
+          style={{ left: "-16px" }}
+          className="absolute top-1/2 -translate-y-1/2 w-8 h-16 bg-gray-200 rounded-l-md flex items-center justify-center shadow-md transition-all"
+        >
+          {isTableVisible ? (
+            <ChevronRightIcon fontSize="small" />
+          ) : (
+            <ChevronLeftIcon fontSize="small" />
+          )}
+        </button>
       </div>
-    </div>
+    </>
   );
 };
 

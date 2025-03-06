@@ -23,6 +23,7 @@ interface feedback {
 interface TableFeedbackProps {
   data: feedback[];
   queryTable: { page: number; pageSize: number };
+  total: number;
   setQueryTable: Dispatch<SetStateAction<{ page: number; pageSize: number }>>;
 }
 
@@ -30,6 +31,7 @@ const TableFeedback: React.FC<TableFeedbackProps> = ({
   data,
   setQueryTable,
   queryTable,
+  total,
 }) => {
   const handleChangePage = (_event: unknown, newPage: number) => {
     setQueryTable((prev) => ({ ...prev, page: newPage }));
@@ -50,12 +52,21 @@ const TableFeedback: React.FC<TableFeedbackProps> = ({
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>STT</TableCell>
-              <TableCell>Người dùng</TableCell>
-              <TableCell>Nền tảng</TableCell>
-              <TableCell>Điểm</TableCell>
-              <TableCell>Tin nhắn</TableCell>
-              <TableCell>Thời điểm</TableCell>
+              {[
+                "STT",
+                "Người dùng",
+                "Nền tảng",
+                "Điểm",
+                "Tin nhắn",
+                "hời điểm",
+              ].map((title) => (
+                <TableCell
+                  key={title}
+                  className="whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  {title}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -77,7 +88,7 @@ const TableFeedback: React.FC<TableFeedbackProps> = ({
       <TablePagination
         rowsPerPageOptions={[10, 20, 50]}
         component="div"
-        count={100}
+        count={total}
         rowsPerPage={queryTable.pageSize}
         page={queryTable.page}
         onPageChange={handleChangePage}

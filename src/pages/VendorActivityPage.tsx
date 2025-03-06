@@ -16,6 +16,8 @@ import RenderChart from "./components/RenderChart";
 import useDeviceTypeMap from "hooks/useDeviceTypeMap";
 import { LayoutItem } from "app/app";
 import { layoutDefault } from "constants/layoutGrid";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 interface DataVendorActivity {
   [key: string]: ChartData;
@@ -24,6 +26,7 @@ interface DataVendorActivity {
 const cols = 8;
 
 interface VendorPageProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setLayoutDefault?: React.Dispatch<React.SetStateAction<any>>;
   pathName?: string;
 }
@@ -31,7 +34,9 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
   setLayoutDefault,
   pathName,
 }) => {
+  const [isTableVisible, setIsTableVisible] = useState(true);
   // const { t } = useTranslation();
+  const [total, setTotalItem] = useState(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
   const deviceTypeMap = useDeviceTypeMap();
@@ -63,8 +68,10 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
     vendorAPI
       .tableVendorAndDevice(queryTable)
       .then((res) => {
-        const { data } = res;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data, total } = res as unknown as any;
         setDataTable(data);
+        setTotalItem(total | 0);
       })
       .catch((e) => console.error(e));
   }, [queryTable]);
@@ -201,8 +208,12 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
   }, []);
 
   return (
-    <div style={{ width: "100%", height: "auto", display: "flex" }}>
-      <div style={{ flex: 1 }} ref={containerRef}>
+    <>
+      <div
+        className="flex-1"
+        ref={containerRef}
+        style={{ width: "100%", height: "auto", display: "flex" }}
+      >
         <GridLayout
           key={JSON.stringify(dataVendor)}
           className="layout"
@@ -235,7 +246,7 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
                   {title}
                 </div>
                 <RenderChart
-                  key={gridWidth}
+                  // key={gridWidth}
                   type={type}
                   labels={labels}
                   datasets={datasets}
@@ -246,14 +257,35 @@ const VendorActivityPage: React.FC<VendorPageProps> = ({
           })}
         </GridLayout>
       </div>
-      <div style={{ width: "500px", minWidth: "500px" }}>
-        <TableVendorDevice
-          queryTable={queryTable}
-          data={dataTable}
-          setQueryTable={setQueryTable}
-        />
+      <div
+        className={`relative bg-white shadow-lg transition-all duration-300 ${
+          isTableVisible ? "w-[500px] opacity-100" : "w-0 opacity-1"
+        }`}
+      >
+        {isTableVisible && (
+          <div className="w-[500px] h-full overflow-y-auto">
+            <TableVendorDevice
+              queryTable={queryTable}
+              data={dataTable}
+              setQueryTable={setQueryTable}
+              total={total}
+            />
+          </div>
+        )}
+
+        <button
+          onClick={() => setIsTableVisible(!isTableVisible)}
+          style={{ left: "-16px" }}
+          className="absolute top-1/2 -translate-y-1/2 w-8 h-16 bg-gray-200 rounded-l-md flex items-center justify-center shadow-md transition-all"
+        >
+          {isTableVisible ? (
+            <ChevronRightIcon fontSize="small" />
+          ) : (
+            <ChevronLeftIcon fontSize="small" />
+          )}
+        </button>
       </div>
-    </div>
+    </>
   );
 };
 

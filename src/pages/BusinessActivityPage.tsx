@@ -23,6 +23,7 @@ interface DataBusinessActivity {
 const cols = 12;
 
 interface BusinessPageProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setLayoutDefault?: React.Dispatch<React.SetStateAction<any>>;
   pathName?: string;
 }
@@ -33,12 +34,13 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [gridWidth, setGridWidth] = useState(0);
-  const [layout, setLayout] = useState(() => {
-    const savedLayout = localStorage.getItem(`layout_${pathName}`);
-    return savedLayout
-      ? JSON.parse(savedLayout)
-      : layoutDefault[`layout_${pathName}_default`];
-  });
+  const [layout, setLayout] = useState(
+    // const savedLayout = localStorage.getItem(`layout_${pathName}`);
+    // return savedLayout
+    //   ? JSON.parse(savedLayout)
+    //   :
+    layoutDefault[`layout_${pathName}_default`]
+  );
 
   const [dataBusiness, setDataBusiness] = useState<DataBusinessActivity>({});
 
@@ -332,6 +334,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
 
         const allIds = [
           ...new Set(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             dataRaw.flatMap((entry: any) =>
               entry.data.map((d: { _id: unknown }) => d._id)
             )
@@ -339,7 +342,9 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
         ];
 
         const transformedData = allIds.reduce(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (acc: any, id: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             acc[id] = dataRaw.map(({ data }: any) => {
               const found = data.find((d: { _id: unknown }) => d._id === id);
               return found ? found.count : 0;
@@ -347,6 +352,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
             return acc;
           },
           {} as Record<number, number[]>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ) as any;
 
         setDataBusiness((prev) => ({
@@ -395,6 +401,7 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
 
   return (
     <div
+      className="flex-1"
       ref={containerRef}
       style={{ width: "100%", height: "auto", display: "flex" }}
     >
@@ -419,18 +426,11 @@ const BusinessActivityPage: React.FC<BusinessPageProps> = ({
               className="chart-container"
               style={chartContainerStyle}
             >
-              <div
-                className="drag-handle"
-                style={{
-                  cursor: "grab",
-                  background: "#ed023114",
-                  padding: 5,
-                }}
-              >
+              <div className="drag-handle cursor-grab bg-[#ed023114] p-2">
                 {title}
               </div>
               <RenderChart
-                key={gridWidth}
+                // key={gridWidth}
                 type={type}
                 labels={labels}
                 datasets={datasets}

@@ -41,10 +41,18 @@ function DemoPageContent({ pathName }: { pathName: string }) {
         JSON.stringify(filteredLayout)
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layoutDefault]);
 
   return (
-    <Box sx={{ backgroundColor: "#fff", padding: "20px" }}>
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        padding: "20px",
+        minHeight: "calc(100vh - 64px)",
+      }}
+      className="w-full flex relative"
+    >
       <PageComponent setLayoutDefault={setLayoutDefault} pathName={pathName} />
     </Box>
   );
@@ -61,7 +69,7 @@ interface DemoProps {
 export default function App(props: DemoProps) {
   const { window } = props;
   const { session, authentication } = useAuth();
-  const router = useDemoRouter("/dashboard");
+  const router = useDemoRouter("/user_experience");
 
   // Remove this const when copying and pasting into your project.
   const demoWindow = window !== undefined ? window() : undefined;
@@ -82,7 +90,7 @@ export default function App(props: DemoProps) {
           />
         ),
         title: "",
-        homeUrl: "/dashboard",
+        homeUrl: "/user_experience",
       }}
       session={session}
       authentication={authentication}
